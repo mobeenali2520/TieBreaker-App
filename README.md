@@ -8,29 +8,34 @@ Rather than deciding for the user, it asks personalized questions, analyzes mult
 🎯 Problem Statement
 
 Real-world problem:
+
+
 Every day people struggle with important decisions such as choosing a career, selecting a university, making financial investments, or comparing job offers. Most AI assistants immediately provide answers without understanding the user's priorities.
+
+
 The Tiebreaker AI solves this by guiding users through a structured decision-making process that uncovers hidden trade-offs and provides evidence-based recommendations.
 
 🤖 AI Feature
+
 The application uses Google's Gemini API to perform structured decision analysis. Instead of generating an immediate answer, the AI first asks three personalized clarifying questions. Based on the user's responses, it selects the most appropriate decision 
 framework (comparison matrix or SWOT analysis), identifies hidden risks, challenges assumptions using a Devil's Advocate approach, performs a 10–10–10 analysis, and produces a weighted recommendation with a confidence score.
 
 📸 Screenshots
     Login Page
 🏠 Landing Page
-     (landing-page.png)
+     (landing-page.jpg)
 ❓ AI Clarifying Questions
-    (questions.png)
+    (questions.jpg)
 📊 Decision Analysis Report
        (executive-vredict.png)
 ⚖️ Comparison Matrix
-          (comparison.png)
+          (comparison.jpg)
 📈 SWOT Analysis
-          (swot.png)
+          (swot.jpg)
 👿 Devil's Advocate
-       (devils-advocate.png)
+       (devils-advocate.jpg)
 🕒 10–10–10 Analysis
-    (101010analysis.png)
+    (101010analysis.jpg)
 
 ✨ Features
 🤖 AI-powered decision assistant
@@ -141,13 +146,12 @@ npm run dev
 
 Open
 
-http://localhost:3000
+https://decidewise-decision-matrix-tie-breaker.ai.studio
 🌐 Deployment
 
 Deploy easily with Google AI Studio.
 
-npm run build
-vercel
+
 🔒 Security
 
 The application follows modern security practices including:
