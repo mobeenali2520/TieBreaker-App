@@ -1,0 +1,6 @@
+{
+  "name": "DecideWise - Decision Matrix & Tie Breaker",
+  "description": "An intelligent decision matrix, criteria weighting tool, and quick tie-breaker app with data visualizers and sensitivity analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
