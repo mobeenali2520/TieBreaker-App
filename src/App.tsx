@@ -13,6 +13,11 @@ import {
 } from './utils/storage';
 import { fetchAiIntakeQuestions, fetchAiFullAnalysis } from './utils/aiService';
 
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginScreen } from './components/Auth/LoginScreen';
+import { AccessRevokedScreen } from './components/Auth/AccessRevokedScreen';
+import { AdminPanelModal } from './components/Admin/AdminPanelModal';
+
 import { Header } from './components/Header';
 import { HistoryDrawer } from './components/History/HistoryDrawer';
 import { CleanSlateHome } from './components/Home/CleanSlateHome';
@@ -22,9 +27,11 @@ import { ReportView } from './components/ReportView';
 import { AiAssistantModal } from './components/AiAssistant/AiAssistantModal';
 import { TemplatesModal } from './components/Templates/TemplatesModal';
 import { ExportImportModal } from './components/ExportImport/ExportImportModal';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Sparkles } from 'lucide-react';
 
-export default function App() {
+function MainAppContent() {
+  const { currentUser, userProfile, loading, isRevoked } = useAuth();
+
   // App navigation state
   const [viewMode, setViewMode] = useState<'home' | 'intake' | 'report'>('home');
   const [activeTab, setActiveTab] = useState<'summary' | 'matrix' | 'swot' | 'blindspots' | 'analytics' | 'sensitivity' | 'tiebreaker'>('summary');
@@ -47,6 +54,7 @@ export default function App() {
   const [showAiModal, setShowAiModal] = useState(false);
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   // Initial Load from local storage
   useEffect(() => {
@@ -168,6 +176,28 @@ export default function App() {
     window.print();
   };
 
+  // Loading state while verifying auth session
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="p-4 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl mb-4 shadow-lg shadow-indigo-500/10">
+          <Sparkles className="h-8 w-8 text-indigo-400 animate-spin" />
+        </div>
+        <p className="text-sm font-semibold text-slate-300">Verifying session security credentials...</p>
+      </div>
+    );
+  }
+
+  // Unauthenticated user -> Login Screen
+  if (!currentUser) {
+    return <LoginScreen />;
+  }
+
+  // Revoked access user -> Access Revoked Screen
+  if (isRevoked) {
+    return <AccessRevokedScreen />;
+  }
+
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex flex-col selection:bg-indigo-500 selection:text-white transition-colors duration-200`}>
       
@@ -186,6 +216,7 @@ export default function App() {
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(!darkMode)}
         onPrintReport={handlePrintReport}
+        onOpenAdminPanel={() => setShowAdminPanel(true)}
       />
 
       {/* Quota Banner Notice for Report Mode */}
@@ -245,7 +276,7 @@ export default function App() {
       <footer className="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-500 print:hidden">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div>The Tiebreaker • Executive Decision Framework & Analysis</div>
-          <div>All decision data saved locally in your browser</div>
+          <div>Protected with Google Authentication & Firestore Access Control</div>
         </div>
       </footer>
 
@@ -259,6 +290,12 @@ export default function App() {
         onNewProject={handleNewDecision}
         onDeleteProject={handleDeleteProject}
         onToggleFavorite={handleToggleFavorite}
+      />
+
+      {/* Admin Panel Modal */}
+      <AdminPanelModal
+        isOpen={showAdminPanel}
+        onClose={() => setShowAdminPanel(false)}
       />
 
       {/* Modals */}
@@ -295,3 +332,12 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainAppContent />
+    </AuthProvider>
+  );
+}
+

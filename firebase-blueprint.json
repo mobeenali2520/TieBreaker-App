@@ -1,0 +1,20 @@
+{
+  "entities": {
+    "users": {
+      "title": "Users",
+      "description": "User profile metadata and access status records.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastLogin": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "revoked"] },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email", "displayName", "status", "role"]
+    }
+  }
+}
