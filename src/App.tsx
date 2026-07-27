@@ -8,7 +8,8 @@ import { DecisionProject, ClarifyingQuestion } from './types/decision';
 import { 
   loadAllProjects, 
   saveSingleProject, 
-  deleteProject
+  deleteProject,
+  getActiveProjectId
 } from './utils/storage';
 import { fetchAiIntakeQuestions, fetchAiFullAnalysis } from './utils/aiService';
 
@@ -51,6 +52,14 @@ export default function App() {
   useEffect(() => {
     const loaded = loadAllProjects();
     setAllProjects(loaded);
+    const activeId = getActiveProjectId();
+    if (activeId && loaded.length > 0) {
+      const active = loaded.find((p) => p.id === activeId);
+      if (active) {
+        setActiveProject(active);
+        setViewMode('report');
+      }
+    }
   }, []);
 
   // Sync dark mode class on document element

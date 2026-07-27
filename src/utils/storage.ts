@@ -37,17 +37,13 @@ export function loadAllProjects(): DecisionProject[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      const defaultProj = createDefaultProject();
-      saveProjects([defaultProj]);
-      localStorage.setItem(ACTIVE_PROJECT_KEY, defaultProj.id);
-      return [defaultProj];
+      return [];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [createDefaultProject()];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     console.error('Failed to load projects:', e);
-    const defaultProj = createDefaultProject();
-    return [defaultProj];
+    return [];
   }
 }
 
@@ -76,13 +72,11 @@ export function saveSingleProject(project: DecisionProject): DecisionProject[] {
 export function deleteProject(id: string): DecisionProject[] {
   const all = loadAllProjects();
   const filtered = all.filter((p) => p.id !== id);
-  if (filtered.length === 0) {
-    const defaultProj = createDefaultProject();
-    saveProjects([defaultProj]);
-    localStorage.setItem(ACTIVE_PROJECT_KEY, defaultProj.id);
-    return [defaultProj];
-  }
   saveProjects(filtered);
+  const activeId = getActiveProjectId();
+  if (activeId === id) {
+    localStorage.removeItem(ACTIVE_PROJECT_KEY);
+  }
   return filtered;
 }
 
