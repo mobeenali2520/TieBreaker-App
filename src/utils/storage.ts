@@ -130,11 +130,10 @@ export function setActiveProjectId(id: string): void {
 }
 
 export function exportProjectToJson(project: DecisionProject): void {
-  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(project, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `${project.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_decidewise.json`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
+  // Export as PDF document instead of .json as requested
+  import('./exportUtils').then(({ exportProjectToPdf }) => {
+    exportProjectToPdf(project);
+  }).catch(() => {
+    window.print();
+  });
 }

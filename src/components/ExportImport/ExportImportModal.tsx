@@ -4,17 +4,14 @@ import {
   Upload, 
   Printer, 
   X, 
-  FileJson, 
   FileSpreadsheet, 
   FileText, 
   FileDown, 
   CheckCircle2, 
   Sparkles,
-  Table,
-  SlidersHorizontal
+  Table
 } from 'lucide-react';
 import { DecisionProject } from '../../types/decision';
-import { exportProjectToJson } from '../../utils/storage';
 import { exportProjectToCsv, exportProjectToPdf } from '../../utils/exportUtils';
 import { calculateOptionResults } from '../../utils/decisionEngine';
 
@@ -101,7 +98,49 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           {/* Main Format Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {/* 1. EXPORT CSV SPREADSHEET */}
+            {/* 1. EXPORT PDF REPORT (PRIMARY) */}
+            <button
+              onClick={() => exportProjectToPdf(project)}
+              className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/90 to-slate-900 border-2 border-indigo-500/80 text-left space-y-3 group transition-all duration-200 hover:scale-[1.01] hover:shadow-2xl hover:shadow-indigo-950/50 relative overflow-hidden col-span-1 sm:col-span-2"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-indigo-500/20 transition-all" />
+
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-indigo-950 text-indigo-300 border border-indigo-600/80 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-indigo-400" />
+                  <span className="text-[11px] font-black tracking-widest text-indigo-100 uppercase">
+                    OFFICIAL PDF DOCUMENT (RECOMMENDED)
+                  </span>
+                </div>
+                <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center group-hover:bg-indigo-500 transition-all shadow-md">
+                  <FileDown className="h-5 w-5" />
+                </div>
+              </div>
+
+              <div>
+                <div className="font-bold text-white text-lg group-hover:text-indigo-200 transition-colors flex items-center gap-2">
+                  <span>Download Executive Decision Analysis PDF</span>
+                  <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-700/60 px-2 py-0.5 rounded-full">
+                    .pdf format
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Generates an executive multi-page PDF document featuring decision rankings, weighted score breakdown matrix, SWOT quad, devil's advocate blind spots, and verified AI statements.
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-indigo-900/60 flex items-center justify-between text-[11px] text-indigo-300 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                  Print-Ready & Shareable Executive Brief
+                </span>
+                <span className="text-white font-bold underline underline-offset-2 flex items-center gap-1">
+                  Download Official .PDF Document
+                </span>
+              </div>
+            </button>
+
+            {/* 2. EXPORT CSV SPREADSHEET */}
             <button
               onClick={() => exportProjectToCsv(project)}
               className="p-5 rounded-2xl bg-slate-950/70 border border-emerald-900/40 hover:border-emerald-500/80 text-left space-y-3 group transition-all duration-200 hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-950/30 relative overflow-hidden"
@@ -112,7 +151,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <div className="p-2.5 rounded-xl bg-emerald-950/80 text-emerald-400 border border-emerald-700/60 flex items-center gap-2">
                   <FileSpreadsheet className="h-5 w-5 text-emerald-400" />
                   <span className="text-[11px] font-black tracking-widest text-emerald-200 uppercase">
-                    CSV SPREADSHEET
+                    CSV DATA SPREADSHEET
                   </span>
                 </div>
                 <div className="h-8 w-8 rounded-xl bg-emerald-950/50 text-emerald-400 border border-emerald-800/40 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 group-hover:border-emerald-400 transition-all shadow-sm">
@@ -125,92 +164,20 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                   <span>Export CSV (.csv)</span>
                 </div>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Raw numerical grid formatted for Microsoft Excel, Google Sheets, or custom data pipelines.
+                  Raw numerical grid formatted for Excel or Google Sheets with verified AI statements.
                 </p>
               </div>
 
               <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-emerald-400/90 font-medium">
                 <span className="flex items-center gap-1">
                   <Table className="h-3.5 w-3.5 text-emerald-500" />
-                  Includes Matrix + SWOT + Blindspots
+                  Grid + SWOT + Disclaimer
                 </span>
                 <span className="text-emerald-300 font-semibold underline underline-offset-2">Download .csv</span>
               </div>
             </button>
 
-            {/* 2. EXPORT PDF REPORT */}
-            <button
-              onClick={() => exportProjectToPdf(project)}
-              className="p-5 rounded-2xl bg-slate-950/70 border border-rose-900/40 hover:border-rose-500/80 text-left space-y-3 group transition-all duration-200 hover:scale-[1.01] hover:shadow-xl hover:shadow-rose-950/30 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-rose-500/10 transition-all" />
-
-              <div className="flex items-center justify-between">
-                <div className="p-2.5 rounded-xl bg-rose-950/80 text-rose-400 border border-rose-700/60 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-rose-400" />
-                  <span className="text-[11px] font-black tracking-widest text-rose-200 uppercase">
-                    PDF DOCUMENT
-                  </span>
-                </div>
-                <div className="h-8 w-8 rounded-xl bg-rose-950/50 text-rose-400 border border-rose-800/40 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-slate-950 group-hover:border-rose-400 transition-all shadow-sm">
-                  <FileDown className="h-4 w-4" />
-                </div>
-              </div>
-
-              <div>
-                <div className="font-bold text-white text-base group-hover:text-rose-300 transition-colors flex items-center gap-1.5">
-                  <span>Download PDF Report</span>
-                </div>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Executive multi-page report with visual winner badge, color-coded evaluation table & risk analysis.
-                </p>
-              </div>
-
-              <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-rose-400/90 font-medium">
-                <span className="flex items-center gap-1">
-                  <Sparkles className="h-3.5 w-3.5 text-rose-400" />
-                  Print-Ready Executive Brief
-                </span>
-                <span className="text-rose-300 font-semibold underline underline-offset-2">Download .pdf</span>
-              </div>
-            </button>
-
-            {/* 3. EXPORT JSON BACKUP */}
-            <button
-              onClick={() => exportProjectToJson(project)}
-              className="p-5 rounded-2xl bg-slate-950/70 border border-purple-900/40 hover:border-purple-500/80 text-left space-y-3 group transition-all duration-200 hover:scale-[1.01] hover:shadow-xl hover:shadow-purple-950/30"
-            >
-              <div className="flex items-center justify-between">
-                <div className="p-2.5 rounded-xl bg-purple-950/80 text-purple-400 border border-purple-700/60 flex items-center gap-2">
-                  <FileJson className="h-5 w-5 text-purple-400" />
-                  <span className="text-[11px] font-black tracking-widest text-purple-200 uppercase">
-                    JSON BACKUP
-                  </span>
-                </div>
-                <div className="h-8 w-8 rounded-xl bg-purple-950/50 text-purple-400 border border-purple-800/40 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-slate-950 group-hover:border-purple-400 transition-all shadow-sm">
-                  <FileDown className="h-4 w-4" />
-                </div>
-              </div>
-
-              <div>
-                <div className="font-bold text-white text-base group-hover:text-purple-300 transition-colors">
-                  Export Raw JSON
-                </div>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Complete project state export to store locally or migrate between devices.
-                </p>
-              </div>
-
-              <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-purple-400/90 font-medium">
-                <span className="flex items-center gap-1">
-                  <SlidersHorizontal className="h-3.5 w-3.5 text-purple-400" />
-                  Full Decision State
-                </span>
-                <span className="text-purple-300 font-semibold underline underline-offset-2">Download .json</span>
-              </div>
-            </button>
-
-            {/* 4. IMPORT JSON FILE */}
+            {/* 3. IMPORT PREVIOUS DECISION FILE */}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="p-5 rounded-2xl bg-slate-950/70 border border-teal-900/40 hover:border-teal-500/80 text-left space-y-3 group transition-all duration-200 hover:scale-[1.01] hover:shadow-xl hover:shadow-teal-950/30 relative"
@@ -229,17 +196,17 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
               <div>
                 <div className="font-bold text-white text-base group-hover:text-teal-300 transition-colors">
-                  Import JSON File
+                  Import Decision File
                 </div>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Upload a previously saved .json decision file to restore scores, criteria and analysis.
+                  Upload a saved decision backup file to restore scores, criteria and analysis into the app.
                 </p>
               </div>
 
               <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-teal-400/90 font-medium">
                 <span className="flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5 text-teal-400" />
-                  Instant Local Restore
+                  Restore Decision State
                 </span>
                 <span className="text-teal-300 font-semibold underline underline-offset-2">Select File...</span>
               </div>
@@ -247,7 +214,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".json"
+                accept=".json,.pdf,.csv"
                 onChange={handleFileUpload}
                 className="hidden"
               />
