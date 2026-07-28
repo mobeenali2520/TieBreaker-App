@@ -9,7 +9,9 @@ import {
   loadAllProjects, 
   saveSingleProject, 
   deleteProject,
-  getActiveProjectId
+  getActiveProjectId,
+  fetchUserProjectsFromFirestore,
+  saveProjects
 } from './utils/storage';
 import { fetchAiIntakeQuestions, fetchAiFullAnalysis } from './utils/aiService';
 
@@ -69,6 +71,37 @@ function MainAppContent() {
       }
     }
   }, []);
+
+  // Sync projects with Firestore when logged in
+  useEffect(() => {
+    if (!currentUser) return;
+
+    fetchUserProjectsFromFirestore(currentUser.uid).then((remoteProjects) => {
+      if (remoteProjects && remoteProjects.length > 0) {
+        const local = loadAllProjects();
+        // Merge remote and local by id, preferring newer updatedAt
+        const map = new Map<string, DecisionProject>();
+        local.forEach((p) => map.set(p.id, p));
+        remoteProjects.forEach((rp) => {
+          const existing = map.get(rp.id);
+          if (!existing || (rp.updatedAt || 0) >= (existing.updatedAt || 0)) {
+            map.set(rp.id, rp);
+          }
+        });
+
+        const merged = Array.from(map.values()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        setAllProjects(merged);
+        saveProjects(merged);
+
+        // Upload any local-only projects to Firestore
+        local.forEach((p) => {
+          if (!remoteProjects.some((rp) => rp.id === p.id)) {
+            saveSingleProject(p);
+          }
+        });
+      }
+    }).catch((err) => console.warn("Firestore projects sync warning:", err));
+  }, [currentUser]);
 
   // Sync dark mode class on document element
   useEffect(() => {

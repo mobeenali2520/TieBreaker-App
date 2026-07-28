@@ -23,6 +23,10 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
+
+      match /projects/{projectId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
     }
   }
 }

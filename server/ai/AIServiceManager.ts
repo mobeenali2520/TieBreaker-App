@@ -13,19 +13,10 @@ export class AIServiceManager {
 
   private registerProviders() {
     this.providers = [
-      // Priority 1: Gemini 3.6 Flash with Search Grounding
-      new GeminiProvider("gemini-3.6-flash", 10, true),
+      // Priority 1: Gemini 3.6 Flash
+      new GeminiProvider("gemini-3.6-flash", 10, false),
 
-      // Priority 2: Gemini 2.0 Flash with Search Grounding
-      new GeminiProvider("gemini-2.0-flash", 15, true),
-
-      // Priority 3: Gemini 1.5 Flash
-      new GeminiProvider("gemini-1.5-flash", 20, false),
-
-      // Priority 4: Gemini 2.5 Pro
-      new GeminiProvider("gemini-2.5-pro", 25, false),
-
-      // Priority 3: Groq Llama 3.3 70B
+      // Priority 2: Groq Llama 3.3 70B
       new OpenAICompatibleProvider(
         "Groq (Llama-3.3-70b)",
         "GROQ_API_KEY",

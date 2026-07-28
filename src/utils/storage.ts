@@ -1,8 +1,47 @@
 import { DecisionProject } from '../types/decision';
 import { PRESET_TEMPLATES } from '../data/templates';
+import { doc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
 
 const STORAGE_KEY = 'decidewise_projects_v1';
 const ACTIVE_PROJECT_KEY = 'decidewise_active_id';
+
+export async function syncProjectToFirestore(project: DecisionProject): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const ref = doc(db, 'users', user.uid, 'projects', project.id);
+    await setDoc(ref, project);
+  } catch (err) {
+    console.warn("Failed to sync project to Firestore:", err);
+  }
+}
+
+export async function deleteProjectFromFirestore(projectId: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const ref = doc(db, 'users', user.uid, 'projects', projectId);
+    await deleteDoc(ref);
+  } catch (err) {
+    console.warn("Failed to delete project from Firestore:", err);
+  }
+}
+
+export async function fetchUserProjectsFromFirestore(uid: string): Promise<DecisionProject[]> {
+  try {
+    const projectsCol = collection(db, 'users', uid, 'projects');
+    const snap = await getDocs(projectsCol);
+    const list: DecisionProject[] = [];
+    snap.forEach((docSnap) => {
+      list.push(docSnap.data() as DecisionProject);
+    });
+    return list;
+  } catch (err) {
+    console.warn("Failed to fetch user projects from Firestore:", err);
+    return [];
+  }
+}
 
 export function createDefaultProject(): DecisionProject {
   const template = PRESET_TEMPLATES[0]; // Job offers
@@ -66,6 +105,7 @@ export function saveSingleProject(project: DecisionProject): DecisionProject[] {
   }
   saveProjects(all);
   localStorage.setItem(ACTIVE_PROJECT_KEY, project.id);
+  syncProjectToFirestore(updated);
   return all;
 }
 
@@ -77,6 +117,7 @@ export function deleteProject(id: string): DecisionProject[] {
   if (activeId === id) {
     localStorage.removeItem(ACTIVE_PROJECT_KEY);
   }
+  deleteProjectFromFirestore(id);
   return filtered;
 }
 

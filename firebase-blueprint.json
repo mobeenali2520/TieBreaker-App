@@ -15,6 +15,20 @@
         "role": { "type": "string", "enum": ["admin", "user"] }
       },
       "required": ["uid", "email", "displayName", "status", "role"]
+    },
+    "projects": {
+      "title": "Projects",
+      "description": "Decision analysis matrix projects per user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "title"]
     }
   }
 }
