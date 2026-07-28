@@ -77,6 +77,11 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
                 `Based on multi-criteria weighted matrix analysis, ${winner?.option.name} achieves the highest score of ${winner?.normalizedPercentage}% across your core evaluation metrics.`
               }
             </p>
+
+            <div className="pt-1 flex items-center gap-1.5 text-[11px] text-slate-400">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Gemini can make mistakes. Please verify important information.</span>
+            </div>
           </div>
 
           {/* Confidence Score Dial */}

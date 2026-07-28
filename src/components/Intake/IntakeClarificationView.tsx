@@ -219,7 +219,11 @@ export const IntakeClarificationView: React.FC<IntakeClarificationViewProps> = (
         })}
 
         {/* Submit */}
-        <div className="pt-2 flex items-center justify-end">
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Gemini can make mistakes. Please verify important information.</span>
+          </p>
           <button
             type="submit"
             disabled={!isFormComplete}

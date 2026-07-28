@@ -335,6 +335,12 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
           )}
 
         </div>
+
+        {/* Modal Footer Disclaimer */}
+        <div className="p-3 border-t border-slate-800 bg-slate-950/80 text-center text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+          <span>Gemini can make mistakes. Please verify important information.</span>
+        </div>
       </div>
     </div>
   );

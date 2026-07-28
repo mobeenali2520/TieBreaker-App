@@ -41,7 +41,27 @@ export function exportProjectToCsv(project: DecisionProject): void {
   csvLines.push(`${escapeCsv('Category')},${escapeCsv(project.category || 'General')}`);
   csvLines.push(`${escapeCsv('Description')},${escapeCsv(project.description || 'N/A')}`);
   csvLines.push(`${escapeCsv('Export Date')},${escapeCsv(new Date().toLocaleDateString())}`);
+  csvLines.push(`${escapeCsv('AI Disclaimer')},${escapeCsv('Gemini can make mistakes, please verify it.')}`);
   csvLines.push('');
+
+  // 1.1. AI Executive Verdict & Analysis Statement
+  if (project.verdict) {
+    csvLines.push(escapeCsv('AI EXECUTIVE VERDICT & ANALYSIS STATEMENT'));
+    csvLines.push(`${escapeCsv('Recommended Option')},${escapeCsv(project.verdict.recommendedOptionName || 'N/A')}`);
+    csvLines.push(`${escapeCsv('Confidence Score')},${escapeCsv(`${project.verdict.confidenceScore || 85}%`)}`);
+    csvLines.push(`${escapeCsv('AI Executive Summary')},${escapeCsv(project.verdict.executiveSummary || 'N/A')}`);
+    if (project.verdict.keyReasons?.length) {
+      csvLines.push(`${escapeCsv('Key Strategic Drivers')},${escapeCsv(project.verdict.keyReasons.join('; '))}`);
+    }
+    if (project.verdict.primaryRisks?.length) {
+      csvLines.push(`${escapeCsv('Key Risks to Monitor')},${escapeCsv(project.verdict.primaryRisks.join('; '))}`);
+    }
+    if (project.verdict.suggestedNextSteps?.length) {
+      csvLines.push(`${escapeCsv('Suggested Next Steps')},${escapeCsv(project.verdict.suggestedNextSteps.join('; '))}`);
+    }
+    csvLines.push(`${escapeCsv('AI Statement Note')},${escapeCsv('Gemini can make mistakes, please verify important information.')}`);
+    csvLines.push('');
+  }
 
   // 2. Executive Summary & Rankings
   csvLines.push(escapeCsv('EXECUTIVE SUMMARY & RANKINGS'));
@@ -529,7 +549,7 @@ export function exportProjectToPdf(project: DecisionProject): void {
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184); // slate-400
     doc.text(
-      `Page ${i} of ${pageCount} • The Tiebreaker Decision Analysis Framework`,
+      `Page ${i} of ${pageCount} • The Tiebreaker • Gemini can make mistakes, please verify important information`,
       pageWidth / 2,
       pageHeight - 8,
       { align: 'center' }
