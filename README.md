@@ -12,8 +12,8 @@
 
 ## 🌐 Live Deployed Application
 
-* **Live Interactive Application**: [https://ais-dev-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app](https://ais-dev-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app)
-* **Public Shared Preview**: [https://ais-pre-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app](https://ais-pre-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app)
+* **Live Interactive Application**: https://decidewise-decision-matrix-tie-breaker.ai.studio
+* **Public Shared Preview**: hidden.
 
 > ⚠️ **AI Disclaimer**: *Gemini can make mistakes, please verify important information.*
 
