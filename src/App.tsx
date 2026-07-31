@@ -48,6 +48,8 @@ function MainAppContent() {
   const [currentDilemma, setCurrentDilemma] = useState('');
   const [candidateOptions, setCandidateOptions] = useState<string[]>([]);
   const [intakeQuestions, setIntakeQuestions] = useState<ClarifyingQuestion[]>([]);
+  const [intakeCategory, setIntakeCategory] = useState<string | null>(null);
+  const [intakeDetectedOptions, setIntakeDetectedOptions] = useState<string[]>([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
   const [quotaNotice, setQuotaNotice] = useState<string | null>(null);
@@ -149,11 +151,21 @@ function MainAppContent() {
   const handleStartIntake = async (dilemma: string, options: string[]) => {
     setCurrentDilemma(dilemma);
     setCandidateOptions(options);
+    setIntakeCategory(null);
+    setIntakeDetectedOptions([]);
     setViewMode('intake');
     setIsLoadingQuestions(true);
 
     const result = await fetchAiIntakeQuestions(dilemma, options);
     setIntakeQuestions(result.questions);
+    if (result.category) setIntakeCategory(result.category);
+    if (result.options && result.options.length > 0) {
+      setIntakeDetectedOptions(result.options);
+      if (options.length === 0) {
+        setCandidateOptions(result.options);
+      }
+    }
+
     if (result.quotaErrorNotice) {
       setQuotaNotice(result.quotaErrorNotice);
     } else {
@@ -281,6 +293,8 @@ function MainAppContent() {
           <IntakeClarificationView
             dilemma={currentDilemma}
             questions={intakeQuestions}
+            category={intakeCategory}
+            detectedOptions={intakeDetectedOptions}
             isLoadingQuestions={isLoadingQuestions}
             isGeneratingAnalysis={isGeneratingAnalysis}
             quotaNotice={quotaNotice}

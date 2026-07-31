@@ -1,6 +1,8 @@
 import { ClarifyingQuestion, DecisionProject, GroundingSource } from '../../src/types/decision';
 
 export interface IntakeQuestionsResult {
+  category?: string;
+  options?: string[];
   questions: ClarifyingQuestion[];
   groundingSources?: GroundingSource[];
   providerUsed?: string;

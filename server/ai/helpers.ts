@@ -26,35 +26,66 @@ export function parseJsonFromLlmText(text: string): any {
 }
 
 export function buildIntakePrompt(dilemma: string, rawOptions?: string[]): string {
-  return `You are a strategic decision consultant. A user is facing the following critical decision:
-"${dilemma}"
-${rawOptions && rawOptions.length > 0 ? `User mentioned these initial candidate choices: ${rawOptions.join(", ")}` : ""}
+  return `You are the Question Generation Engine for "The Tiebreaker".
+Your job is to gather the minimum information necessary to produce an accurate, highly personalized decision analysis.
 
-Formulate exactly 3 highly specific, probing clarifying questions to extract their underlying priorities, budget/constraints, and risk tolerance for evaluating this decision.
+Core Rules:
+1. NEVER ask generic or repetitive questions.
+2. NEVER reuse the same generic template questions for every decision.
+3. Understand what the user is trying to decide and generate adaptive follow-up questions tailored specifically to their decision domain.
+
+Step 1 — Detect Decision Category:
+Automatically infer the category of the user's decision (e.g., University Selection, Career Decision, Job Offer, Higher Education, Buying a Product, Financial Investment, Business Strategy, Travel, Health & Fitness, Relationships, Technology, Programming, AI Tools, Lifestyle, Real Estate, Vehicle Purchase, Hiring, Team Management, etc.).
+
+Step 2 — Detect Compared Options:
+Identify Option A, Option B, etc., if mentioned or implied (e.g. User: "PIEAS or NUST?" -> Option A = PIEAS, Option B = NUST; User: "React vs Next.js" -> Option A = React, Option B = Next.js).
+
+Step 3 — Generate Adaptive Questions:
+Generate EXACTLY 3 intelligent, domain-specific clarifying questions that maximize useful information.
+Avoid simple yes/no questions unless unavoidable. Ask only what materially affects the decision recommendation and criteria weighting.
+
+Step 4 — Personalize Questions with Component Types:
+Assign appropriate interactive UI component types to each question. Supported types:
+- "single_select" (Provide 4-5 relevant choices)
+- "multi_select" (Provide 4-5 choices that can be combined)
+- "dropdown" (Provide select options)
+- "slider" (Provide min, max, step, e.g., min: 1, max: 10, step: 1)
+- "budget_range" (Provide budget options or range)
+- "priority_ranking" (Provide key dimensions to rank)
+- "date_picker" (Provide timeframe choices)
+- "text_input" (Provide clear placeholder text)
+
+User Decision Request: "${dilemma}"
+${rawOptions && rawOptions.length > 0 ? `User Provided Candidate Choices: ${rawOptions.join(", ")}` : ""}
 
 Return ONLY a valid JSON object matching this schema:
 {
+  "category": "Detected Category (e.g. University Selection, Programming, Vehicle Purchase, etc.)",
+  "options": ["Option A Name", "Option B Name"],
   "questions": [
     {
       "id": "q1",
-      "question": "Clear, concise question statement",
-      "contextNote": "Brief 1-sentence note on why this matters for criteria weighting",
-      "placeholder": "Helpful input placeholder example",
-      "options": ["Option Choice 1", "Option Choice 2", "Option Choice 3", "Option Choice 4"]
+      "question": "Domain-specific, intelligent question 1?",
+      "type": "single_select",
+      "contextNote": "1-sentence explanation of why this question matters for criteria weighting",
+      "placeholder": "Helpful placeholder text...",
+      "options": ["Choice 1", "Choice 2", "Choice 3", "Choice 4", "Choice 5"]
     },
     {
       "id": "q2",
-      "question": "Clear, concise question statement",
-      "contextNote": "Brief 1-sentence note on why this matters for criteria weighting",
-      "placeholder": "Helpful input placeholder example",
-      "options": ["Option Choice 1", "Option Choice 2", "Option Choice 3", "Option Choice 4"]
+      "question": "Domain-specific, intelligent question 2?",
+      "type": "single_select",
+      "contextNote": "1-sentence explanation of why this question matters for criteria weighting",
+      "placeholder": "Helpful placeholder text...",
+      "options": ["Choice 1", "Choice 2", "Choice 3", "Choice 4", "Choice 5"]
     },
     {
       "id": "q3",
-      "question": "Clear, concise question statement",
-      "contextNote": "Brief 1-sentence note on why this matters for criteria weighting",
-      "placeholder": "Helpful input placeholder example",
-      "options": ["Option Choice 1", "Option Choice 2", "Option Choice 3", "Option Choice 4"]
+      "question": "Domain-specific, intelligent question 3?",
+      "type": "single_select",
+      "contextNote": "1-sentence explanation of why this question matters for criteria weighting",
+      "placeholder": "Helpful placeholder text...",
+      "options": ["Choice 1", "Choice 2", "Choice 3", "Choice 4", "Choice 5"]
     }
   ]
 }`;

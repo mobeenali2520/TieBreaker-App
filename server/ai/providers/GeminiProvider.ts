@@ -76,6 +76,8 @@ export class GeminiProvider implements AIProvider {
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
 
     return {
+      category: parsed.category,
+      options: parsed.options,
       questions: parsed.questions,
       groundingSources: groundingChunks || [],
       providerUsed: this.name,

@@ -23,12 +23,26 @@ export interface Criterion {
 // Map key: `${optionId}_${criterionId}` -> score (1-10)
 export type ScoreMap = Record<string, number>;
 
+export type QuestionType = 
+  | 'single_select' 
+  | 'multi_select' 
+  | 'dropdown' 
+  | 'slider' 
+  | 'date_picker' 
+  | 'budget_range' 
+  | 'priority_ranking' 
+  | 'text_input';
+
 export interface ClarifyingQuestion {
   id: string;
   question: string;
+  type?: QuestionType;
   contextNote?: string;
   placeholder?: string;
-  options?: string[]; // Optional quick select choices
+  options?: string[]; // Quick select choices / dropdown choices / multi_select choices
+  min?: number; // for slider
+  max?: number; // for slider
+  step?: number;
   answer?: string;
 }
 
