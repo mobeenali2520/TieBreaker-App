@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sliders, AlertTriangle, ArrowRightLeft, Sparkles, CheckCircle, Info } from 'lucide-react';
 import { 
   LineChart, 
@@ -28,24 +28,30 @@ export const SensitivityView: React.FC<SensitivityViewProps> = ({
 
   const selectedCriterion = project.criteria.find((c) => c.id === selectedCritId);
 
-  if (!selectedCriterion || project.criteria.length === 0) {
+  const sensitivityData = useMemo(() => {
+    if (!selectedCriterion || project.criteria.length === 0) return null;
+    return calculateSensitivityAnalysis(project, selectedCriterion.id);
+  }, [project, selectedCriterion?.id]);
+
+  // Transform points for Recharts LineChart
+  const chartPoints = useMemo(() => {
+    if (!sensitivityData) return [];
+    return sensitivityData.points.map((pt) => {
+      const row: Record<string, any> = { weight: `Weight ${pt.weight}` };
+      project.options.forEach((opt) => {
+        row[opt.name] = pt.optionScores[opt.id];
+      });
+      return row;
+    });
+  }, [sensitivityData, project.options]);
+
+  if (!selectedCriterion || project.criteria.length === 0 || !sensitivityData) {
     return (
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
         Add criteria in the Decision Matrix grid to run sensitivity analysis.
       </div>
     );
   }
-
-  const sensitivityData = calculateSensitivityAnalysis(project, selectedCriterion.id);
-
-  // Transform points for Recharts LineChart
-  const chartPoints = sensitivityData.points.map((pt) => {
-    const row: Record<string, any> = { weight: `Weight ${pt.weight}` };
-    project.options.forEach((opt) => {
-      row[opt.name] = pt.optionScores[opt.id];
-    });
-    return row;
-  });
 
   const handleApplyWeight = (newWeight: number) => {
     const updatedCriteria = project.criteria.map((c) => (c.id === selectedCritId ? { ...c, weight: newWeight } : c));

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Trophy, 
   Plus, 
@@ -54,7 +54,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
   // Active cell score edit popover
   const [activeCellKey, setActiveCellKey] = useState<string | null>(null);
 
-  const results: OptionResult[] = calculateOptionResults(project);
+  const results: OptionResult[] = useMemo(() => calculateOptionResults(project), [project]);
   const winner = results[0];
 
   // Helper to get score badge style based on 0-100 score

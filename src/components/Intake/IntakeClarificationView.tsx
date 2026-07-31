@@ -139,9 +139,30 @@ export const IntakeClarificationView: React.FC<IntakeClarificationViewProps> = (
           <span>Back to Home</span>
         </button>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Step 1 of 2 • Context Intake</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              const autofilled: Record<string, string> = {};
+              questions.forEach((q) => {
+                if (q.options && q.options.length > 0) {
+                  autofilled[q.id] = q.options[0];
+                } else {
+                  autofilled[q.id] = "High priority on performance, long-term stability, and minimal risk.";
+                }
+              });
+              setAnswers(autofilled);
+            }}
+            className="text-[11px] text-indigo-300 hover:text-white bg-indigo-950/60 hover:bg-indigo-900/80 px-2.5 py-1 rounded-lg border border-indigo-700/50 flex items-center gap-1 transition-all"
+          >
+            <Sparkles className="w-3 h-3 text-indigo-400" />
+            <span>Auto-Fill Defaults</span>
+          </button>
+
+          <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Step 1 of 2 • Context Intake</span>
+          </div>
         </div>
       </div>
 

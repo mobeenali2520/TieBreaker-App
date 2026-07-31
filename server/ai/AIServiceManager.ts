@@ -99,10 +99,22 @@ export class AIServiceManager {
     return await operation(fallbackProvider);
   }
 
+  private cache: Map<string, { timestamp: number; data: any }> = new Map();
+  private CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes TTL
+
   async generateIntakeQuestions(dilemma: string, rawOptions?: string[]): Promise<IntakeQuestionsResult> {
-    return this.executeWithFailover("generateIntakeQuestions", (provider) =>
+    const cacheKey = `intake:${dilemma.trim().toLowerCase()}:${(rawOptions || []).sort().join(",")}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+      console.log(`[AI Cache Hit] Returning cached intake questions for "${dilemma.slice(0, 30)}..."`);
+      return cached.data;
+    }
+
+    const result = await this.executeWithFailover("generateIntakeQuestions", (provider) =>
       provider.generateIntakeQuestions(dilemma, rawOptions)
     );
+    this.cache.set(cacheKey, { timestamp: Date.now(), data: result });
+    return result;
   }
 
   async generateFullAnalysis(
@@ -110,9 +122,19 @@ export class AIServiceManager {
     answers: Record<string, string>,
     optionsList?: string[]
   ): Promise<FullAnalysisResult> {
-    return this.executeWithFailover("generateFullAnalysis", (provider) =>
+    const answersKey = Object.entries(answers || {}).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => `${k}:${v}`).join("|");
+    const cacheKey = `full:${dilemma.trim().toLowerCase()}:${answersKey}:${(optionsList || []).sort().join(",")}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+      console.log(`[AI Cache Hit] Returning cached full analysis for "${dilemma.slice(0, 30)}..."`);
+      return cached.data;
+    }
+
+    const result = await this.executeWithFailover("generateFullAnalysis", (provider) =>
       provider.generateFullAnalysis(dilemma, answers, optionsList)
     );
+    this.cache.set(cacheKey, { timestamp: Date.now(), data: result });
+    return result;
   }
 
   async generateSuggestions(

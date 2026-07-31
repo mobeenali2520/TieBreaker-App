@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -23,7 +23,41 @@ interface AnalyticsViewProps {
 }
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ project }) => {
-  const results: OptionResult[] = calculateOptionResults(project);
+  const results: OptionResult[] = useMemo(() => calculateOptionResults(project), [project]);
+
+  // 1. Overall Comparison Data
+  const scoreComparisonData = useMemo(() => {
+    return results.map((r) => ({
+      name: r.option.name,
+      score: r.normalizedPercentage,
+      color: r.option.color,
+      rank: r.rank,
+    }));
+  }, [results]);
+
+  // 2. Radar Chart Data (Options mapped against Criteria)
+  const radarData = useMemo(() => {
+    return project.criteria.map((crit) => {
+      const row: Record<string, any> = { criterion: crit.name };
+      project.options.forEach((opt) => {
+        const key = `${opt.id}_${crit.id}`;
+        const score = project.scores[key] ?? 5;
+        row[opt.name] = score;
+      });
+      return row;
+    });
+  }, [project.criteria, project.options, project.scores]);
+
+  // 3. Stacked Contribution Bar Chart Data
+  const stackedData = useMemo(() => {
+    return results.map((r) => {
+      const row: Record<string, any> = { name: r.option.name };
+      r.criterionContributions.forEach((contrib) => {
+        row[contrib.criterionName] = Math.round(contrib.weightedContribution * 10) / 10;
+      });
+      return row;
+    });
+  }, [results]);
 
   if (results.length === 0) {
     return (
@@ -32,34 +66,6 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ project }) => {
       </div>
     );
   }
-
-  // 1. Overall Comparison Data
-  const scoreComparisonData = results.map((r) => ({
-    name: r.option.name,
-    score: r.normalizedPercentage,
-    color: r.option.color,
-    rank: r.rank,
-  }));
-
-  // 2. Radar Chart Data (Options mapped against Criteria)
-  const radarData = project.criteria.map((crit) => {
-    const row: Record<string, any> = { criterion: crit.name };
-    project.options.forEach((opt) => {
-      const key = `${opt.id}_${crit.id}`;
-      const score = project.scores[key] ?? 5;
-      row[opt.name] = score;
-    });
-    return row;
-  });
-
-  // 3. Stacked Contribution Bar Chart Data
-  const stackedData = results.map((r) => {
-    const row: Record<string, any> = { name: r.option.name };
-    r.criterionContributions.forEach((contrib) => {
-      row[contrib.criterionName] = Math.round(contrib.weightedContribution * 10) / 10;
-    });
-    return row;
-  });
 
   return (
     <div className="space-y-8">
