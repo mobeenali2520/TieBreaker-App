@@ -12,8 +12,8 @@
 
 ## 🌐 Live Deployed Application
 
-* **Live Interactive Application**: https://decidewise-decision-matrix-tie-breaker.ai.studio
-* **Public Shared Preview**: hidden.
+* **Live Interactive Application**: [https://ais-dev-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app](https://ais-dev-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app)
+* **Public Shared Preview**: [https://ais-pre-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app](https://ais-pre-nnrefmhh5n6xyzp5ehzs2i-31821864401.asia-east1.run.app)
 
 > ⚠️ **AI Disclaimer**: *Gemini can make mistakes, please verify important information.*
 
@@ -37,55 +37,35 @@ By combining **Multi-Criteria Decision Analysis (MCDA)**, **Game-Theoretic Stres
 ---
 
 ## ✨ Comprehensive Feature Suite
-###  ADMIN PANEL
-<img width="406" height="130" alt="Adminpanel" src="https://github.com/user-attachments/assets/9f3fdf10-07cb-46f0-8235-d2006f34a7b0" />
-
-### LOGIN PAGE
-<img width="371" height="362" alt="LOGINPAGE" src="https://github.com/user-attachments/assets/de0f2dd7-279c-453a-9b8a-59fe252acaa7" />
 
 ### 🎯 1. Intelligent AI Intake & Context Clarifier
 * **Dynamic Probing Questions**: Before evaluating options, the AI engine generates 3 targeted clarifying questions specific to your dilemma (e.g., career, finance, housing, tech architecture).
-* <img width="314" height="404" alt="Question" src="https://github.com/user-attachments/assets/139e5c68-6a5e-4374-aedc-d647d96ef869" />
-
-* **Executive Summary**: Quantifies non-negotiables, strict budget baselines, risk tolerances, and time horizons upfront.
-<img width="473" height="422" alt="Executivesummary" src="https://github.com/user-attachments/assets/98b1e3fe-c649-4637-9afa-67f0144331ba" />
+* **Constraint Calibration**: Quantifies non-negotiables, strict budget baselines, risk tolerances, and time horizons upfront.
 
 ### 📊 2. Weighted Decision Matrix & Scoring Grid
 * **Multi-Attribute Utility Theory (MAUT)**: Custom criteria (e.g., ROI, Execution Feasibility, Quality of Life, Long-term Risk) assigned weights from 1 to 10.
-* <img width="306" height="433" alt="matrix" src="https://github.com/user-attachments/assets/763d8f8d-3681-40e4-bf1d-1461e76aab45" />
-
 * **Positive vs. Negative Impact Dimensions**: Automatically handles cost/risk factors (where lower scores are better) vs. upside benefits (where higher scores are better).
 * **Interactive Dimensional Visualizer**: Side-by-side comparative score cards with normalized percentage totals.
 
 ### 🛡️ 3. Devil's Advocate & Blind Spot Stress Test
-<img width="473" height="385" alt="devil" src="https://github.com/user-attachments/assets/295cee7b-a99e-44e4-a04e-30111dea611c" />
-
 * **Cognitive Bias Neutralizer**: Actively challenges the leading option with severe counter-arguments to prevent confirmation bias.
 * **Unexamined Assumptions Detector**: Highlights unverified premises under stress.
 * **Risk Severity Radar**: Categorizes hidden blind spots into *High*, *Medium*, or *Low* severity with actionable mitigation strategies.
 
 ### 🧩 4. Automated 4-Quadrant SWOT Matrix
-<img width="643" height="425" alt="SWOT" src="https://github.com/user-attachments/assets/ab5b3686-dc18-4afa-8179-a4b60896dce1" />
-
 * **Option-by-Option Breakdown**: Generates individual **Strengths**, **Weaknesses**, **Opportunities**, and **Threats** with impact ratings (0–100) for every candidate choice.
 
 ### 📈 5. Interactive "What-If" Sensitivity Simulator
-<img width="481" height="441" alt="sensitivity" src="https://github.com/user-attachments/assets/ed6b6c4a-a50b-4b18-ac34-306de32dc026" />
-
 * **Live Dynamic Weight Sliders**: Drag criterion weights in real time and watch normalized option trajectories adjust instantly.
 * **Recharts Trajectory Graphs**: Visualizes score curves and identifies crossover flip-points where a changing priority alters the winner.
 * **Multi-Attribute Radar Chart**: Displays multi-dimensional coverage overlap across all active criteria.
 
-### ⏳ 6. 10-10-10 Time Horizon 
-<img width="647" height="187" alt="101010" src="https://github.com/user-attachments/assets/de334a86-9eed-4418-b508-6e4bae1e5ab9" />
-
+### ⏳ 6. 10-10-10 Time Horizon & Executive Verdict
 * **Suzy Welch 10-10-10 Framework**: Projects decision impact across **10 Minutes** (immediate reaction), **10 Months** (mid-term trajectory), and **10 Years** (long-term legacy).
 * **Final Executive Verdict**: Provides a definitive recommendation, confidence percentage, primary strategic drivers, and 3 immediate next steps.
 * **Coin Flip ("I'm Still Stuck")**: A psychological gut-check tool to test your subconscious reaction when forced into a randomized binary outcome.
 
 ### 📑 7. Executive PDF & CSV Reporting
-<img width="906" height="233" alt="CSV" src="https://github.com/user-attachments/assets/7f48deba-82e6-42d9-a508-4fc00a9b1fc7" />
-
 * **Official PDF Brief Download**: Generates print-ready multi-page executive summaries complete with charts, matrix tables, and verified AI disclaimers.
 * **CSV Data Export**: Downloads spreadsheet-ready data grids for custom modeling in Excel or Google Sheets.
 * **Persistence & History**: Save, rename, star, filter, and restore decision records stored via browser storage and Firebase Firestore.
@@ -201,48 +181,36 @@ Return ONLY a valid JSON object strictly matching this schema:
 ## 📸 App Screenshots & Visual Walkthrough
 
 ### 1. Context Intake & Probing Questions
-<img width="314" height="404" alt="Question" src="https://github.com/user-attachments/assets/493b87f5-ea86-4478-b8b3-80229766ea89" />
-
 ![Intake Questions Step](https://raw.githubusercontent.com/mobeenali2520/TieBreaker-App/main/screenshots/intake.png)
 *Tailored intake questions generated by Gemini to extract non-negotiables, budget constraints, and risk preferences.*
 
 ---
 
 ### 2. Weighted Comparison Matrix & Dimensional Visualizer
-<img width="306" height="433" alt="matrix" src="https://github.com/user-attachments/assets/1130b097-7f05-4d06-91fd-252aedba15e5" />
-
 ![Weighted Comparison Matrix](https://raw.githubusercontent.com/mobeenali2520/TieBreaker-App/main/screenshots/matrix.png)
 *Normalized weighted scoring totals, side-by-side factor ratings, and customizable dimension tables.*
 
 ---
 
 ### 3. SWOT Matrix Decomposition
-<img width="643" height="425" alt="SWOT" src="https://github.com/user-attachments/assets/1614b41c-b455-4688-8232-bb7c461b778d" />
-
 ![SWOT Quadrant View](https://raw.githubusercontent.com/mobeenali2520/TieBreaker-App/main/screenshots/swot.png)
 *4-quadrant strategic decomposition evaluating Strengths, Weaknesses, Opportunities, and Threats for each choice.*
 
 ---
 
 ### 4. Devil's Advocate & Blind Spots Detector
-<img width="473" height="385" alt="devil" src="https://github.com/user-attachments/assets/d6a50d70-5393-4de5-a981-c7eb30ca8458" />
-
 ![Devil's Advocate Stress Test](https://raw.githubusercontent.com/mobeenali2520/TieBreaker-App/main/screenshots/devils_advocate.png)
 *Cognitive bias stress testing, challenging unexamined assumptions and ranking risk severities.*
 
 ---
 
 ### 5. "What-If" Sensitivity Analysis & Trajectory Radar
-<img width="481" height="441" alt="sensitivity" src="https://github.com/user-attachments/assets/0c0e6b0f-4ba8-4b41-be92-0aae48b4a534" />
-
 ![Sensitivity Simulator](https://raw.githubusercontent.com/mobeenali2520/TieBreaker-App/main/screenshots/sensitivity.png)
 *Real-time weight manipulation sliders with score trajectory lines and multi-attribute balance radar.*
 
 ---
 
 ### 6. 10-10-10 Time Horizon & Executive Verdict
-<img width="647" height="187" alt="101010" src="https://github.com/user-attachments/assets/4e18fc33-246b-4845-9298-2c4c754a6664" />
-
 ![10-10-10 Analysis](https://raw.githubusercontent.com/mobeenali2520/TieBreaker-App/main/screenshots/tententen.png)
 *suzy Welch 10-Minute, 10-Month, and 10-Year perspective forecast paired with actionable next steps.*
 
