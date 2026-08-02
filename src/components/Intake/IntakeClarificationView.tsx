@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClarifyingQuestion } from '../../types/decision';
 import { Sparkles, ArrowRight, ArrowLeft, CheckCircle2, HelpCircle, AlertTriangle, X } from 'lucide-react';
 
@@ -32,6 +32,18 @@ export const IntakeClarificationView: React.FC<IntakeClarificationViewProps> = (
 }) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [dismissNotice, setDismissNotice] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState(0);
+
+  useEffect(() => {
+    if (!isGeneratingAnalysis) {
+      setAnalysisStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAnalysisStep((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 700);
+    return () => clearInterval(interval);
+  }, [isGeneratingAnalysis]);
 
   const handleTextChange = (qId: string, val: string) => {
     setAnswers((prev) => ({ ...prev, [qId]: val }));
@@ -89,27 +101,58 @@ export const IntakeClarificationView: React.FC<IntakeClarificationViewProps> = (
   }
 
   if (isGeneratingAnalysis) {
+    const steps = [
+      "Analyzing user intake preferences & constraints",
+      "Evaluating options across weighted strategic criteria",
+      "Generating SWOT quadrants & Blindspot risks",
+      "Finalizing multi-criteria decision verdict",
+    ];
+
     return (
       <div className="max-w-3xl mx-auto py-16 px-4 text-center">
-        <div className="inline-flex items-center gap-2 p-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 mb-6 animate-spin">
-          <Sparkles className="w-5 h-5" />
+        <div className="inline-flex items-center gap-2 p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-6 animate-spin">
+          <Sparkles className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Constructing Decision Framework</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Synthesizing Decision Analysis</h2>
         <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-md mx-auto">
-          Building weighted multi-criteria matrix, SWOT quadrants, blind spot detector, 10-10-10 horizon, and devil's advocate report...
+          Computing multi-criteria matrix, SWOT analysis, blindspot warnings, and executive verdict...
         </p>
 
-        <div className="mt-8 max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 text-xs text-left">
-          <div className="flex items-center gap-2 text-indigo-400 font-medium">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>Clarification Intake Validated</span>
+        <div className="mt-8 max-w-md mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 text-xs text-left shadow-2xl backdrop-blur-sm">
+          <div className="space-y-2.5">
+            {steps.map((stepText, idx) => {
+              const isDone = analysisStep > idx;
+              const isCurrent = analysisStep === idx;
+              return (
+                <div key={idx} className="flex items-center gap-2.5 transition-all duration-300">
+                  {isDone ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : isCurrent ? (
+                    <Sparkles className="w-4 h-4 text-indigo-400 animate-spin shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border border-slate-700 shrink-0" />
+                  )}
+                  <span
+                    className={
+                      isDone
+                        ? "text-slate-300 line-through decoration-slate-600"
+                        : isCurrent
+                        ? "text-indigo-300 font-semibold"
+                        : "text-slate-500"
+                    }
+                  >
+                    {stepText}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-2 text-indigo-400 font-medium">
-            <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
-            <span>Calculating Weighted Trade-offs & Confidence Score...</span>
-          </div>
-          <div className="h-2 bg-slate-950 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-3/4 animate-pulse"></div>
+
+          <div className="h-2 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+            <div
+              className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${Math.min(100, (analysisStep + 1) * 25)}%` }}
+            ></div>
           </div>
         </div>
       </div>

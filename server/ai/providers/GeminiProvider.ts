@@ -8,7 +8,7 @@ export class GeminiProvider implements AIProvider {
   private modelName: string;
   private useSearchGrounding: boolean;
 
-  constructor(modelName: string = "gemini-3.6-flash", priority: number = 10, useSearchGrounding: boolean = false) {
+  constructor(modelName: string = "gemini-2.5-flash", priority: number = 10, useSearchGrounding: boolean = false) {
     this.modelName = modelName;
     this.name = `Google Gemini (${modelName})`;
     this.priority = priority;

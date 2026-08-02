@@ -13,8 +13,8 @@ export class AIServiceManager {
 
   private registerProviders() {
     this.providers = [
-      // Priority 1: Gemini 3.6 Flash
-      new GeminiProvider("gemini-3.6-flash", 10, false),
+      // Priority 1: Gemini 2.5 Flash (Ultra-fast, official Gemini model)
+      new GeminiProvider("gemini-2.5-flash", 10, false),
 
       // Priority 2: Groq Llama 3.3 70B
       new OpenAICompatibleProvider(
@@ -83,7 +83,16 @@ export class AIServiceManager {
     for (const provider of configuredProviders) {
       try {
         console.log(`[AI Failover System] Attempting "${actionName}" via provider: ${provider.name}`);
-        const result = await operation(provider);
+        
+        // 8-second strict timeout per provider call
+        const timeoutMs = provider.name.includes("Heuristic") ? 3000 : 8000;
+        const result = await Promise.race([
+          operation(provider),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Provider timeout (${timeoutMs}ms exceeded)`)), timeoutMs)
+          ),
+        ]);
+
         console.log(`[AI Failover System] "${actionName}" succeeded using provider: ${provider.name}`);
         return result;
       } catch (err: any) {

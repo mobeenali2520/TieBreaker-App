@@ -57,29 +57,39 @@ export async function fetchAiFullAnalysis(
   answers: Record<string, string>,
   optionsList: string[] = []
 ): Promise<AnalysisResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s max client timeout
+
   try {
     const res = await fetch('/api/ai-analyze-full', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dilemma, answers, optionsList }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const data = await res.json().catch(() => ({}));
 
     if (res.status === 429 || data.isQuotaError || data.error === 'quota_exceeded') {
-      console.warn('[AI Service] All 3 AI providers failed or busy on full analysis:', data.message);
+      console.warn('[AI Service] AI services busy on full analysis, using instant dynamic synthesis engine:', data.message);
       const fallbackAnalysis = generateLocalFullAnalysis(dilemma, answers, optionsList);
       return {
         ...fallbackAnalysis,
-        quotaErrorNotice: data.message || 'All AI services are currently busy. Please try again in a few moments.',
+        quotaErrorNotice: data.message || 'All AI services are currently busy. Using instant decision engine.',
       };
     }
 
     if (res.ok && data && data.options && data.criteria) {
       return data;
     }
-  } catch (err) {
-    console.warn('[AI Service] Full analysis endpoint unreachable or failed, using local synthesis engine:', err);
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      console.warn('[AI Service] Request timed out after 10s, seamlessly switching to instant decision synthesis engine.');
+    } else {
+      console.warn('[AI Service] Full analysis endpoint unreachable, using local synthesis engine:', err);
+    }
   }
 
   return generateLocalFullAnalysis(dilemma, answers, optionsList);
