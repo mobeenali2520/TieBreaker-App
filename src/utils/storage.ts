@@ -5,6 +5,30 @@ import { db, auth } from '../lib/firebase';
 
 const STORAGE_KEY = 'decidewise_projects_v1';
 const ACTIVE_PROJECT_KEY = 'decidewise_active_id';
+const DELETED_PROJECTS_KEY = 'decidewise_deleted_ids_v1';
+
+export function getDeletedProjectIds(): string[] {
+  try {
+    const raw = localStorage.getItem(DELETED_PROJECTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function recordDeletedProjectId(id: string): void {
+  try {
+    const deleted = getDeletedProjectIds();
+    if (!deleted.includes(id)) {
+      deleted.push(id);
+      localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(deleted));
+    }
+  } catch (e) {
+    console.error('Failed to record deleted project id:', e);
+  }
+}
 
 export async function syncProjectToFirestore(project: DecisionProject): Promise<void> {
   const user = auth.currentUser;
@@ -79,7 +103,9 @@ export function loadAllProjects(): DecisionProject[] {
       return [];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const list = Array.isArray(parsed) ? parsed : [];
+    const deletedIds = getDeletedProjectIds();
+    return list.filter((p) => p && p.id && !deletedIds.includes(p.id));
   } catch (e) {
     console.error('Failed to load projects:', e);
     return [];
@@ -88,13 +114,22 @@ export function loadAllProjects(): DecisionProject[] {
 
 export function saveProjects(projects: DecisionProject[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    const deletedIds = getDeletedProjectIds();
+    const filtered = projects.filter((p) => p && p.id && !deletedIds.includes(p.id));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   } catch (e) {
     console.error('Failed to save projects:', e);
   }
 }
 
 export function saveSingleProject(project: DecisionProject): DecisionProject[] {
+  const deletedIds = getDeletedProjectIds();
+  if (deletedIds.includes(project.id)) {
+    // If it was previously marked as deleted, remove from deleted tombstone list
+    const updatedDeleted = deletedIds.filter((id) => id !== project.id);
+    localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(updatedDeleted));
+  }
+
   const all = loadAllProjects();
   const updated = { ...project, updatedAt: Date.now() };
   const index = all.findIndex((p) => p.id === project.id);
@@ -110,6 +145,7 @@ export function saveSingleProject(project: DecisionProject): DecisionProject[] {
 }
 
 export function deleteProject(id: string): DecisionProject[] {
+  recordDeletedProjectId(id);
   const all = loadAllProjects();
   const filtered = all.filter((p) => p.id !== id);
   saveProjects(filtered);
@@ -121,6 +157,17 @@ export function deleteProject(id: string): DecisionProject[] {
   return filtered;
 }
 
+export function clearAllProjects(): DecisionProject[] {
+  const all = loadAllProjects();
+  all.forEach((p) => {
+    recordDeletedProjectId(p.id);
+    deleteProjectFromFirestore(p.id);
+  });
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(ACTIVE_PROJECT_KEY);
+  return [];
+}
+
 export function getActiveProjectId(): string | null {
   return localStorage.getItem(ACTIVE_PROJECT_KEY);
 }
@@ -130,10 +177,16 @@ export function setActiveProjectId(id: string): void {
 }
 
 export function exportProjectToJson(project: DecisionProject): void {
-  // Export as PDF document instead of .json as requested
-  import('./exportUtils').then(({ exportProjectToPdf }) => {
-    exportProjectToPdf(project);
-  }).catch(() => {
-    window.print();
-  });
+  try {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `${(project.title || 'decision_analysis').toLowerCase().replace(/[^a-z0-9]/g, '_')}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  } catch (err) {
+    console.error("Failed to export JSON file:", err);
+  }
 }
+

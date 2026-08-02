@@ -31,6 +31,7 @@ interface HistoryDrawerProps {
   onSelectProject: (id: string) => void;
   onNewProject: () => void;
   onDeleteProject: (id: string) => void;
+  onClearAllProjects?: () => void;
   onToggleFavorite: (project: DecisionProject) => void;
 }
 
@@ -42,6 +43,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   onSelectProject,
   onNewProject,
   onDeleteProject,
+  onClearAllProjects,
   onToggleFavorite,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,6 +95,21 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
             </div>
             
             <div className="flex items-center gap-2">
+              {projects.length > 0 && onClearAllProjects && (
+                <button
+                  onClick={() => {
+                    if (confirm("Permanently delete ALL decision history? This cannot be undone.")) {
+                      onClearAllProjects();
+                    }
+                  }}
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors flex items-center gap-1"
+                  title="Delete all history"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Clear All</span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   onNewProject();
@@ -233,28 +250,31 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             exportProjectToJson(p);
                           }}
-                          className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800"
-                          title="Export JSON"
+                          className="px-2 py-1 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-md transition-colors flex items-center gap-1 text-[10px] font-medium"
+                          title="Download JSON File"
                         >
-                          <Download className="w-3 h-3" />
+                          <Download className="w-3 h-3 text-indigo-400" />
+                          <span>JSON</span>
                         </button>
+
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(`Delete "${p.title}"?`)) {
+                            if (confirm(`Permanently delete "${p.title}" from history?`)) {
                               onDeleteProject(p.id);
                             }
                           }}
-                          className="p-1 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-800"
-                          title="Delete"
+                          className="px-2 py-1 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition-colors flex items-center gap-1 text-[10px] font-medium"
+                          title="Permanently Delete History Item"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3 h-3 text-rose-400" />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>
