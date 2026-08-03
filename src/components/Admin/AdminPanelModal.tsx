@@ -20,12 +20,14 @@ import { db } from '../../lib/firebase';
 import { UserProfile, AdminStats } from '../../types/user';
 import { useAuth } from '../../context/AuthContext';
 
-interface AdminPanelModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useAppStore } from '../../store/useAppStore';
 
-export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({ isOpen, onClose }) => {
+interface AdminPanelModalProps {}
+
+export const AdminPanelModal: React.FC<AdminPanelModalProps> = () => {
+  const { showAdminPanel: isOpen, setShowAdminPanel } = useAppStore();
+  const onClose = () => setShowAdminPanel(false);
+  
   const { userProfile, updateUserAccess, updateUserRole } = useAuth();
   
   const [users, setUsers] = useState<UserProfile[]>([]);

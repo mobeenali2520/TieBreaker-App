@@ -15,22 +15,21 @@ import { DecisionProject } from '../../types/decision';
 import { exportProjectToCsv, exportProjectToPdf } from '../../utils/exportUtils';
 import { calculateOptionResults } from '../../utils/decisionEngine';
 
+import { useAppStore } from '../../store/useAppStore';
+
 interface ExportImportModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  project: DecisionProject;
   onImportProject: (p: DecisionProject) => void;
 }
 
 export const ExportImportModal: React.FC<ExportImportModalProps> = ({
-  isOpen,
-  onClose,
-  project,
   onImportProject,
 }) => {
+  const { showExportModal: isOpen, setShowExportModal, activeProject: project } = useAppStore();
+  const onClose = () => setShowExportModal(false);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen || !project) return null;
 
   const results = calculateOptionResults(project);
   const winner = results[0];

@@ -1,5 +1,6 @@
 import { AIProvider, IntakeQuestionsResult, FullAnalysisResult, SuggestionsResult, MatrixAnalysisResult } from "../types";
-import { parseJsonFromLlmText, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
+import { parseAndValidateJson, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
+import { IntakeQuestionsSchema, FullAnalysisSchema, SuggestionsSchema, MatrixAnalysisSchema } from "../schemas";
 
 export class OpenAICompatibleProvider implements AIProvider {
   name: string;
@@ -88,11 +89,10 @@ export class OpenAICompatibleProvider implements AIProvider {
       prompt,
       "You are an expert decision analyst. Respond strictly with a valid JSON object."
     );
-    const parsed = parseJsonFromLlmText(content);
-    if (!parsed || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
-      throw new Error(`Invalid response structure from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(content, IntakeQuestionsSchema, this.name);
     return {
+      category: parsed.category,
+      options: parsed.options,
       questions: parsed.questions,
       providerUsed: this.name,
     };
@@ -104,10 +104,7 @@ export class OpenAICompatibleProvider implements AIProvider {
       prompt,
       "You are an elite game theorist and strategic analyst. Output valid JSON adhering strictly to the schema provided."
     );
-    const parsed = parseJsonFromLlmText(content);
-    if (!parsed || !parsed.options || !parsed.criteria) {
-      throw new Error(`Invalid decision analysis payload from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(content, FullAnalysisSchema, this.name);
     return {
       ...parsed,
       providerUsed: this.name,
@@ -120,10 +117,7 @@ export class OpenAICompatibleProvider implements AIProvider {
       prompt,
       "You are a strategic brainstorming assistant. Output valid JSON adhering strictly to the schema provided."
     );
-    const parsed = parseJsonFromLlmText(content);
-    if (!parsed || !Array.isArray(parsed.suggestedOptions)) {
-      throw new Error(`Invalid suggestions payload from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(content, SuggestionsSchema, this.name);
     return {
       ...parsed,
       providerUsed: this.name,
@@ -136,10 +130,7 @@ export class OpenAICompatibleProvider implements AIProvider {
       prompt,
       "You are a decision matrix analyst. Output valid JSON adhering strictly to the schema provided."
     );
-    const parsed = parseJsonFromLlmText(content);
-    if (!parsed || !parsed.winnerSummary) {
-      throw new Error(`Invalid matrix analysis payload from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(content, MatrixAnalysisSchema, this.name);
     return {
       ...parsed,
       providerUsed: this.name,

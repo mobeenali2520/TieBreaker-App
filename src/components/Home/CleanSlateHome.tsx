@@ -25,6 +25,8 @@ import {
   Trash2
 } from 'lucide-react';
 
+import { useAppStore } from '../../store/useAppStore';
+
 interface AttachedFile {
   id: string;
   name: string;
@@ -35,13 +37,14 @@ interface AttachedFile {
 
 interface CleanSlateHomeProps {
   onStartIntake: (dilemma: string, options: string[]) => void;
-  onOpenTemplates: () => void;
 }
 
 export const CleanSlateHome: React.FC<CleanSlateHomeProps> = ({
   onStartIntake,
-  onOpenTemplates,
 }) => {
+  const { setShowTemplatesModal } = useAppStore();
+  const onOpenTemplates = () => setShowTemplatesModal(true);
+
   const [dilemma, setDilemma] = useState('');
   const [candidateOptions, setCandidateOptions] = useState<string[]>(['', '']);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);

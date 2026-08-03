@@ -168,35 +168,35 @@ function expressApiPlugin(): Plugin {
             // 1. AI Intake - Generates 3 intelligent clarifying questions
             if (req.url === '/api/ai-intake') {
               const { dilemma, rawOptions } = parsedBody;
-              const prompt = `You are "The Tiebreaker", an elite decision analysis AI.
+              const prompt = `You are a "Socratic Consultant", a world-class executive coach helping a user with a crucial decision.
 The user wants to evaluate this dilemma: "${dilemma}".
 Provided options (if any): ${JSON.stringify(rawOptions || [])}.
 
-Generate EXACTLY 3 intelligent, personalized clarifying questions to gather context about their priorities, values, budget/constraints, risk tolerance, and timeline.
+Your goal is NOT just to gather data, but to aggressively challenge the user's core assumptions. Generate EXACTLY 3 brilliant, probing, non-obvious clarifying questions that a human expert would ask to expose true trade-offs, hidden constraints, and psychological biases. Make the user think "Wow, this person really understands my situation."
 
 Return raw JSON matching this schema:
 {
   "questions": [
     {
       "id": "q1",
-      "question": "Clear, specific question targeting priorities or constraints",
-      "contextNote": "Short explanation of why this question matters",
+      "question": "Probing, expert-level, non-obvious question 1?",
+      "contextNote": "Short explanation of why an expert asks this",
       "placeholder": "e.g. My primary priority is work-life balance and long-term career growth...",
-      "options": ["High Growth", "Stability", "Flexibility", "Higher Pay"]
+      "options": ["Highly specific choice A", "Nuanced choice B", "Expert-level choice C", "Pragmatic choice D"]
     },
     {
       "id": "q2",
-      "question": "Clear question targeting constraints or non-negotiables",
-      "contextNote": "Explanation of importance",
+      "question": "Probing, expert-level, non-obvious question 2?",
+      "contextNote": "Short explanation of why an expert asks this",
       "placeholder": "e.g. Budget cap, minimum salary, max commuting time...",
-      "options": ["Strict Budget", "Time Cap", "Flexibility"]
+      "options": ["Highly specific choice A", "Nuanced choice B", "Expert-level choice C"]
     },
     {
       "id": "q3",
-      "question": "Clear question targeting 2-3 year horizon risk tolerance",
-      "contextNote": "Explanation of importance",
+      "question": "Probing, expert-level, non-obvious question 3?",
+      "contextNote": "Short explanation of why an expert asks this",
       "placeholder": "e.g. Prefer stability vs high upside potential...",
-      "options": ["Low Risk", "Moderate Risk", "High Risk"]
+      "options": ["Highly specific choice A", "Nuanced choice B", "Expert-level choice C"]
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { AIProvider, IntakeQuestionsResult, FullAnalysisResult, SuggestionsResult, MatrixAnalysisResult } from "../types";
-import { parseJsonFromLlmText, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
+import { parseAndValidateJson, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
+import { IntakeQuestionsSchema, FullAnalysisSchema, SuggestionsSchema, MatrixAnalysisSchema } from "../schemas";
 
 export class AnthropicProvider implements AIProvider {
   name: string;
@@ -69,11 +70,10 @@ export class AnthropicProvider implements AIProvider {
   async generateIntakeQuestions(dilemma: string, rawOptions?: string[]): Promise<IntakeQuestionsResult> {
     const prompt = buildIntakePrompt(dilemma, rawOptions);
     const text = await this.callApi(prompt);
-    const parsed = parseJsonFromLlmText(text);
-    if (!parsed || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
-      throw new Error(`Invalid response structure from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(text, IntakeQuestionsSchema, this.name);
     return {
+      category: parsed.category,
+      options: parsed.options,
       questions: parsed.questions,
       providerUsed: this.name,
     };
@@ -82,10 +82,7 @@ export class AnthropicProvider implements AIProvider {
   async generateFullAnalysis(dilemma: string, answers: Record<string, string>, optionsList?: string[]): Promise<FullAnalysisResult> {
     const prompt = buildFullAnalysisPrompt(dilemma, answers, optionsList);
     const text = await this.callApi(prompt);
-    const parsed = parseJsonFromLlmText(text);
-    if (!parsed || !parsed.options || !parsed.criteria) {
-      throw new Error(`Invalid decision analysis payload from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(text, FullAnalysisSchema, this.name);
     return {
       ...parsed,
       providerUsed: this.name,
@@ -95,10 +92,7 @@ export class AnthropicProvider implements AIProvider {
   async generateSuggestions(topic: string, options?: string[], criteria?: string[]): Promise<SuggestionsResult> {
     const prompt = buildSuggestionsPrompt(topic, options, criteria);
     const text = await this.callApi(prompt);
-    const parsed = parseJsonFromLlmText(text);
-    if (!parsed || !Array.isArray(parsed.suggestedOptions)) {
-      throw new Error(`Invalid suggestions payload from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(text, SuggestionsSchema, this.name);
     return {
       ...parsed,
       providerUsed: this.name,
@@ -108,10 +102,7 @@ export class AnthropicProvider implements AIProvider {
   async generateMatrixAnalysis(matrixData: any): Promise<MatrixAnalysisResult> {
     const prompt = buildMatrixAnalysisPrompt(matrixData);
     const text = await this.callApi(prompt);
-    const parsed = parseJsonFromLlmText(text);
-    if (!parsed || !parsed.winnerSummary) {
-      throw new Error(`Invalid matrix analysis payload from ${this.name}`);
-    }
+    const parsed = parseAndValidateJson(text, MatrixAnalysisSchema, this.name);
     return {
       ...parsed,
       providerUsed: this.name,

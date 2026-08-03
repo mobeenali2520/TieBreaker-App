@@ -2,21 +2,22 @@ import React, { useState } from 'react';
 import { Sparkles, X, Loader2, Check, AlertCircle, HelpCircle, AlertTriangle } from 'lucide-react';
 import { DecisionProject, Criterion, Option } from '../../types/decision';
 
+import { useAppStore } from '../../store/useAppStore';
+
 interface AiAssistantModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  project: DecisionProject;
   onUpdateProject: (p: DecisionProject) => void;
 }
 
 export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
-  isOpen,
-  onClose,
-  project,
   onUpdateProject,
 }) => {
+  const { showAiModal: isOpen, setShowAiModal, activeProject: project } = useAppStore();
+  const onClose = () => setShowAiModal(false);
+
   const [activeTab, setActiveTab] = useState<'generate' | 'analyze'>('generate');
-  const [topicInput, setTopicInput] = useState(project.title);
+  const [topicInput, setTopicInput] = useState(project?.title || '');
+  
+  if (!isOpen || !project) return null;
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -34,8 +35,6 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
     sensitivityWarning: string;
     tieBreakerQuestion: string;
   } | null>(null);
-
-  if (!isOpen) return null;
 
   // Handle AI Criteria & Option Generator
   const handleGenerate = async () => {

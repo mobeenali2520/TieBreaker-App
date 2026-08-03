@@ -7,29 +7,27 @@ import React, { useState, useEffect } from 'react';
 import { ClarifyingQuestion } from '../../types/decision';
 import { Sparkles, ArrowRight, ArrowLeft, CheckCircle2, HelpCircle, AlertTriangle, X } from 'lucide-react';
 
+import { useAppStore } from '../../store/useAppStore';
+
 interface IntakeClarificationViewProps {
-  dilemma: string;
-  questions: ClarifyingQuestion[];
-  category?: string | null;
-  detectedOptions?: string[];
-  isLoadingQuestions: boolean;
-  isGeneratingAnalysis: boolean;
-  quotaNotice?: string | null;
   onSubmitAnswers: (answers: Record<string, string>) => void;
-  onBackToHome: () => void;
 }
 
 export const IntakeClarificationView: React.FC<IntakeClarificationViewProps> = ({
-  dilemma,
-  questions,
-  category,
-  detectedOptions,
-  isLoadingQuestions,
-  isGeneratingAnalysis,
-  quotaNotice,
   onSubmitAnswers,
-  onBackToHome,
 }) => {
+  const { 
+    currentDilemma: dilemma, 
+    intakeQuestions: questions, 
+    intakeCategory: category, 
+    intakeDetectedOptions: detectedOptions, 
+    isLoadingQuestions, 
+    isGeneratingAnalysis, 
+    quotaNotice,
+    setViewMode 
+  } = useAppStore();
+  const onBackToHome = () => setViewMode('home');
+
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [dismissNotice, setDismissNotice] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);

@@ -125,9 +125,10 @@ export function saveProjects(projects: DecisionProject[]): void {
 export function saveSingleProject(project: DecisionProject): DecisionProject[] {
   const deletedIds = getDeletedProjectIds();
   if (deletedIds.includes(project.id)) {
-    // If it was previously marked as deleted, remove from deleted tombstone list
-    const updatedDeleted = deletedIds.filter((id) => id !== project.id);
-    localStorage.setItem(DELETED_PROJECTS_KEY, JSON.stringify(updatedDeleted));
+    // Prevent resurrecting a project that was intentionally deleted.
+    // If a background task tries to save a deleted project, we should ignore it.
+    console.warn(`Attempted to save a deleted project (${project.id}). Save aborted.`);
+    return loadAllProjects();
   }
 
   const all = loadAllProjects();
@@ -157,14 +158,30 @@ export function deleteProject(id: string): DecisionProject[] {
   return filtered;
 }
 
+export async function clearAllProjectsFromFirestore(): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const projectsCol = collection(db, 'users', user.uid, 'projects');
+    const snap = await getDocs(projectsCol);
+    const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(deletePromises);
+  } catch (err) {
+    console.warn("Failed to clear projects from Firestore:", err);
+  }
+}
+
 export function clearAllProjects(): DecisionProject[] {
   const all = loadAllProjects();
   all.forEach((p) => {
     recordDeletedProjectId(p.id);
-    deleteProjectFromFirestore(p.id);
   });
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(ACTIVE_PROJECT_KEY);
+  
+  // Asynchronously clear from Firestore
+  clearAllProjectsFromFirestore();
+  
   return [];
 }
 

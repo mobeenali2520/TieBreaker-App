@@ -28,40 +28,44 @@ import {
 import { DecisionProject } from '../types/decision';
 import { useAuth } from '../context/AuthContext';
 
+import { useAppStore } from '../store/useAppStore';
+
 interface HeaderProps {
-  project: DecisionProject | null;
-  activeTab: 'summary' | 'matrix' | 'swot' | 'blindspots' | 'analytics' | 'sensitivity' | 'tiebreaker';
-  setActiveTab: (tab: 'summary' | 'matrix' | 'swot' | 'blindspots' | 'analytics' | 'sensitivity' | 'tiebreaker') => void;
   onUpdateProject: (p: DecisionProject) => void;
-  onOpenHistory: () => void;
   onNewDecision: () => void;
-  onOpenTemplates: () => void;
-  onOpenAiAssistant: () => void;
-  onOpenExportImport: () => void;
-  historyCount: number;
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
   onPrintReport: () => void;
-  onOpenAdminPanel?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  project,
-  activeTab,
-  setActiveTab,
   onUpdateProject,
-  onOpenHistory,
   onNewDecision,
-  onOpenTemplates,
-  onOpenAiAssistant,
-  onOpenExportImport,
-  historyCount,
-  darkMode,
-  onToggleDarkMode,
   onPrintReport,
-  onOpenAdminPanel,
 }) => {
   const { userProfile, isAdmin, logout } = useAuth();
+  
+  const { 
+    activeProject: project, 
+    activeTab, 
+    setActiveTab, 
+    darkMode, 
+    setDarkMode, 
+    allProjects, 
+    setShowHistoryDrawer, 
+    setShowAiModal, 
+    setShowTemplatesModal, 
+    setShowExportModal,
+    setShowAdminPanel,
+    viewMode
+  } = useAppStore();
+  
+  const historyCount = allProjects.length;
+  const onToggleDarkMode = () => setDarkMode(!darkMode);
+  const onOpenHistory = () => setShowHistoryDrawer(true);
+  const onOpenTemplates = () => setShowTemplatesModal(true);
+  const onOpenAiAssistant = () => setShowAiModal(true);
+  const onOpenExportImport = () => setShowExportModal(true);
+  const onOpenAdminPanel = () => setShowAdminPanel(true);
+
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(project?.title || '');
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -273,92 +277,97 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* View Navigation Tabs (Only if project is active) */}
         {project && (
-          <div className="flex items-center gap-1 mt-3 border-t border-slate-800 pt-2 overflow-x-auto scrollbar-none">
+          <div className="relative mt-3 border-t border-slate-800 pt-2">
+            {/* Scroll Hint Fade for Mobile */}
+            <div className="absolute right-0 top-2 bottom-0 w-8 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none md:hidden z-10 opacity-80" />
             
-            <button
-              onClick={() => setActiveTab('summary')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'summary'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Executive Verdict
-            </button>
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1 relative">
+              
+              <button
+                onClick={() => setActiveTab('summary')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'summary'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Executive Verdict
+              </button>
 
-            <button
-              onClick={() => setActiveTab('matrix')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'matrix'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Grid className="h-3.5 w-3.5" />
-              Comparison Matrix
-            </button>
+              <button
+                onClick={() => setActiveTab('matrix')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'matrix'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Grid className="h-3.5 w-3.5" />
+                Comparison Matrix
+              </button>
 
-            <button
-              onClick={() => setActiveTab('swot')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'swot'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Layers className="h-3.5 w-3.5" />
-              SWOT Quad
-            </button>
+              <button
+                onClick={() => setActiveTab('swot')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'swot'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5" />
+                SWOT Quad
+              </button>
 
-            <button
-              onClick={() => setActiveTab('blindspots')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'blindspots'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
-              Blind Spots & Devil's Advocate
-            </button>
+              <button
+                onClick={() => setActiveTab('blindspots')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'blindspots'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
+                Blind Spots & Devil's Advocate
+              </button>
 
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'analytics'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <BarChart3 className="h-3.5 w-3.5" />
-              Analytics
-            </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'analytics'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+                Analytics
+              </button>
 
-            <button
-              onClick={() => setActiveTab('sensitivity')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'sensitivity'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Sliders className="h-3.5 w-3.5" />
-              Sensitivity
-            </button>
+              <button
+                onClick={() => setActiveTab('sensitivity')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'sensitivity'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Sliders className="h-3.5 w-3.5" />
+                Sensitivity
+              </button>
 
-            <button
-              onClick={() => setActiveTab('tiebreaker')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
-                activeTab === 'tiebreaker'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Dices className="h-3.5 w-3.5 text-purple-400" />
-              Coin Flip ("I'm Still Stuck")
-            </button>
+              <button
+                onClick={() => setActiveTab('tiebreaker')}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                  activeTab === 'tiebreaker'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Dices className="h-3.5 w-3.5 text-purple-400" />
+                Coin Flip ("I'm Still Stuck")
+              </button>
 
+            </div>
           </div>
         )}
       </div>

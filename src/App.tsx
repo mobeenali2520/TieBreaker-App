@@ -17,6 +17,7 @@ import {
   deleteProjectFromFirestore
 } from './utils/storage';
 import { fetchAiIntakeQuestions, fetchAiFullAnalysis } from './utils/aiService';
+import { useAppStore } from './store/useAppStore';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginScreen } from './components/Auth/LoginScreen';
@@ -37,31 +38,26 @@ import { AlertTriangle, X, Sparkles } from 'lucide-react';
 function MainAppContent() {
   const { currentUser, userProfile, loading, isRevoked } = useAuth();
 
-  // App navigation state
-  const [viewMode, setViewMode] = useState<'home' | 'intake' | 'report'>('home');
-  const [activeTab, setActiveTab] = useState<'summary' | 'matrix' | 'swot' | 'blindspots' | 'analytics' | 'sensitivity' | 'tiebreaker'>('summary');
-  const [darkMode, setDarkMode] = useState(true);
-
-  // History & Storage
-  const [allProjects, setAllProjects] = useState<DecisionProject[]>([]);
-  const [activeProject, setActiveProject] = useState<DecisionProject | null>(null);
-  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
-
-  // Intake State
-  const [currentDilemma, setCurrentDilemma] = useState('');
-  const [candidateOptions, setCandidateOptions] = useState<string[]>([]);
-  const [intakeQuestions, setIntakeQuestions] = useState<ClarifyingQuestion[]>([]);
-  const [intakeCategory, setIntakeCategory] = useState<string | null>(null);
-  const [intakeDetectedOptions, setIntakeDetectedOptions] = useState<string[]>([]);
-  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
-  const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
-  const [quotaNotice, setQuotaNotice] = useState<string | null>(null);
-
-  // Modals
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const {
+    viewMode, setViewMode,
+    activeTab, setActiveTab,
+    darkMode, setDarkMode,
+    allProjects, setAllProjects,
+    activeProject, setActiveProject,
+    showHistoryDrawer, setShowHistoryDrawer,
+    currentDilemma, setCurrentDilemma,
+    candidateOptions, setCandidateOptions,
+    intakeQuestions, setIntakeQuestions,
+    intakeCategory, setIntakeCategory,
+    intakeDetectedOptions, setIntakeDetectedOptions,
+    isLoadingQuestions, setIsLoadingQuestions,
+    isGeneratingAnalysis, setIsGeneratingAnalysis,
+    quotaNotice, setQuotaNotice,
+    showAiModal, setShowAiModal,
+    showTemplatesModal, setShowTemplatesModal,
+    showExportModal, setShowExportModal,
+    showAdminPanel, setShowAdminPanel
+  } = useAppStore();
 
   // Initial Load from local storage
   useEffect(() => {
@@ -269,20 +265,9 @@ function MainAppContent() {
       
       {/* Header Bar */}
       <Header
-        project={activeProject}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         onUpdateProject={handleUpdateProject}
-        onOpenHistory={() => setShowHistoryDrawer(true)}
         onNewDecision={handleNewDecision}
-        onOpenTemplates={() => setShowTemplatesModal(true)}
-        onOpenAiAssistant={() => setShowAiModal(true)}
-        onOpenExportImport={() => setShowExportModal(true)}
-        historyCount={allProjects.length}
-        darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode(!darkMode)}
         onPrintReport={handlePrintReport}
-        onOpenAdminPanel={() => setShowAdminPanel(true)}
       />
 
       {/* Quota Banner Notice for Report Mode */}
@@ -305,36 +290,21 @@ function MainAppContent() {
         {viewMode === 'home' && (
           <CleanSlateHome
             onStartIntake={handleStartIntake}
-            onOpenTemplates={() => setShowTemplatesModal(true)}
           />
         )}
 
         {/* VIEW 2: AI Intake Clarification (Step 1) */}
         {viewMode === 'intake' && (
           <IntakeClarificationView
-            dilemma={currentDilemma}
-            questions={intakeQuestions}
-            category={intakeCategory}
-            detectedOptions={intakeDetectedOptions}
-            isLoadingQuestions={isLoadingQuestions}
-            isGeneratingAnalysis={isGeneratingAnalysis}
-            quotaNotice={quotaNotice}
             onSubmitAnswers={handleSubmitIntakeAnswers}
-            onBackToHome={() => setViewMode('home')}
           />
         )}
 
         {/* VIEW 3: Active Decision Report Workspace */}
         {viewMode === 'report' && activeProject && (
           <ReportView
-            project={activeProject}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
             onUpdateProject={handleUpdateProject}
-            onOpenAiAssistant={() => setShowAiModal(true)}
             onPrintReport={handlePrintReport}
-            quotaNotice={quotaNotice}
-            onDismissQuotaNotice={() => setQuotaNotice(null)}
           />
         )}
 
@@ -351,10 +321,6 @@ function MainAppContent() {
 
       {/* History Slide-Out Drawer */}
       <HistoryDrawer
-        isOpen={showHistoryDrawer}
-        onClose={() => setShowHistoryDrawer(false)}
-        projects={allProjects}
-        activeProjectId={activeProject?.id || null}
         onSelectProject={handleSelectProject}
         onNewProject={handleNewDecision}
         onDeleteProject={handleDeleteProject}
@@ -363,25 +329,16 @@ function MainAppContent() {
       />
 
       {/* Admin Panel Modal */}
-      <AdminPanelModal
-        isOpen={showAdminPanel}
-        onClose={() => setShowAdminPanel(false)}
-      />
+      <AdminPanelModal />
 
       {/* Modals */}
       {activeProject && (
         <>
           <AiAssistantModal
-            isOpen={showAiModal}
-            onClose={() => setShowAiModal(false)}
-            project={activeProject}
             onUpdateProject={handleUpdateProject}
           />
 
           <ExportImportModal
-            isOpen={showExportModal}
-            onClose={() => setShowExportModal(false)}
-            project={activeProject}
             onImportProject={(imported) => {
               handleUpdateProject(imported);
               setViewMode('report');
@@ -391,8 +348,6 @@ function MainAppContent() {
       )}
 
       <TemplatesModal
-        isOpen={showTemplatesModal}
-        onClose={() => setShowTemplatesModal(false)}
         onSelectTemplate={(templateProj) => {
           handleUpdateProject(templateProj);
           setViewMode('report');

@@ -9,27 +9,30 @@ import { SensitivityView } from '../Sensitivity/SensitivityView';
 import { TieBreakerView } from '../TieBreaker/TieBreakerView';
 import { AlertTriangle, X } from 'lucide-react';
 
+import { useAppStore } from '../../store/useAppStore';
+
 export interface ReportViewProps {
-  project: DecisionProject;
-  activeTab: 'summary' | 'matrix' | 'swot' | 'blindspots' | 'analytics' | 'sensitivity' | 'tiebreaker';
-  setActiveTab: (tab: 'summary' | 'matrix' | 'swot' | 'blindspots' | 'analytics' | 'sensitivity' | 'tiebreaker') => void;
   onUpdateProject: (p: DecisionProject) => void;
-  onOpenAiAssistant: () => void;
   onPrintReport: () => void;
-  quotaNotice?: string | null;
-  onDismissQuotaNotice?: () => void;
 }
 
 export const ReportView: React.FC<ReportViewProps> = ({
-  project,
-  activeTab,
-  setActiveTab,
   onUpdateProject,
-  onOpenAiAssistant,
   onPrintReport,
-  quotaNotice,
-  onDismissQuotaNotice,
 }) => {
+  const { 
+    activeProject, 
+    activeTab, 
+    setActiveTab, 
+    setShowAiModal,
+    quotaNotice,
+    setQuotaNotice 
+  } = useAppStore();
+  const onOpenAiAssistant = () => setShowAiModal(true);
+  const onDismissQuotaNotice = () => setQuotaNotice(null);
+  
+  if (!activeProject) return null;
+  const project = activeProject;
   return (
     <div className="space-y-6">
       {/* Quota / AI Provider Error Notice */}

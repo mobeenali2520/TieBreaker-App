@@ -23,11 +23,9 @@ import {
 } from 'lucide-react';
 import { exportProjectToJson } from '../../utils/storage';
 
+import { useAppStore } from '../../store/useAppStore';
+
 interface HistoryDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  projects: DecisionProject[];
-  activeProjectId: string | null;
   onSelectProject: (id: string) => void;
   onNewProject: () => void;
   onDeleteProject: (id: string) => void;
@@ -36,19 +34,21 @@ interface HistoryDrawerProps {
 }
 
 export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
-  isOpen,
-  onClose,
-  projects,
-  activeProjectId,
   onSelectProject,
   onNewProject,
   onDeleteProject,
   onClearAllProjects,
   onToggleFavorite,
 }) => {
+  const { showHistoryDrawer: isOpen, setShowHistoryDrawer, allProjects: projects, activeProject } = useAppStore();
+  const activeProjectId = activeProject?.id || null;
+  const onClose = () => setShowHistoryDrawer(false);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
 
   if (!isOpen) return null;
 
@@ -96,18 +96,34 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
             
             <div className="flex items-center gap-2">
               {projects.length > 0 && onClearAllProjects && (
-                <button
-                  onClick={() => {
-                    if (confirm("Permanently delete ALL decision history? This cannot be undone.")) {
-                      onClearAllProjects();
-                    }
-                  }}
-                  className="px-2.5 py-1 text-xs font-medium rounded-lg text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors flex items-center gap-1"
-                  title="Delete all history"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  <span>Clear All</span>
-                </button>
+                confirmClearAll ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        onClearAllProjects();
+                        setConfirmClearAll(false);
+                      }}
+                      className="px-2.5 py-1 text-xs font-bold rounded-lg text-white bg-rose-600 hover:bg-rose-500 transition-colors flex items-center gap-1"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={() => setConfirmClearAll(false)}
+                      className="px-2.5 py-1 text-xs font-medium rounded-lg text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors flex items-center gap-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmClearAll(true)}
+                    className="px-2.5 py-1 text-xs font-medium rounded-lg text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors flex items-center gap-1"
+                    title="Delete all history"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Clear All</span>
+                  </button>
+                )
               )}
 
               <button
@@ -251,31 +267,41 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            exportProjectToJson(p);
-                          }}
-                          className="px-2 py-1 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-md transition-colors flex items-center gap-1 text-[10px] font-medium"
-                          title="Download JSON File"
-                        >
-                          <Download className="w-3 h-3 text-indigo-400" />
-                          <span>JSON</span>
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm(`Permanently delete "${p.title}" from history?`)) {
-                              onDeleteProject(p.id);
-                            }
-                          }}
-                          className="px-2 py-1 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition-colors flex items-center gap-1 text-[10px] font-medium"
-                          title="Permanently Delete History Item"
-                        >
-                          <Trash2 className="w-3 h-3 text-rose-400" />
-                          <span>Delete</span>
-                        </button>
+                        {deleteConfirmId === p.id ? (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteProject(p.id);
+                                setDeleteConfirmId(null);
+                              }}
+                              className="px-2 py-1 text-white hover:text-white bg-rose-600 hover:bg-rose-500 rounded-md transition-colors text-[10px] font-bold"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteConfirmId(null);
+                              }}
+                              className="px-2 py-1 text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 rounded-md transition-colors text-[10px] font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirmId(p.id);
+                            }}
+                            className="px-2 py-1 text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-md transition-colors flex items-center gap-1 text-[10px] font-medium"
+                            title="Permanently Delete History Item"
+                          >
+                            <Trash2 className="w-3 h-3 text-rose-400" />
+                            <span>Delete</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

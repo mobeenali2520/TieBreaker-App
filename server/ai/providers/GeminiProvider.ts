@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { AIProvider, IntakeQuestionsResult, FullAnalysisResult, SuggestionsResult, MatrixAnalysisResult } from "../types";
-import { parseJsonFromLlmText, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
+import { parseAndValidateJson, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
+import { IntakeQuestionsSchema, FullAnalysisSchema, SuggestionsSchema, MatrixAnalysisSchema } from "../schemas";
 
 export class GeminiProvider implements AIProvider {
   name: string;
@@ -47,33 +48,34 @@ export class GeminiProvider implements AIProvider {
     }
 
     let response;
-    try {
-      response = await ai.models.generateContent({
-        model: this.modelName,
-        contents: prompt,
-        config,
-      });
-    } catch (err: any) {
-      if (this.useSearchGrounding) {
-        console.warn(`[GeminiProvider] Search-grounded generation failed for ${this.modelName}: ${err?.message || err}. Retrying without grounding...`);
+    let parsed;
+    let attempts = 0;
+    
+    while (attempts < 2) {
+      attempts++;
+      try {
         response = await ai.models.generateContent({
           model: this.modelName,
           contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
+          config,
         });
-      } else {
-        throw err;
+        parsed = parseAndValidateJson(response.text || "", IntakeQuestionsSchema, this.name);
+        break;
+      } catch (err: any) {
+        if (this.useSearchGrounding && err.message?.includes("grounding") && attempts === 1) {
+          console.warn(`[GeminiProvider] Search-grounded generation failed for ${this.modelName}: ${err?.message || err}. Retrying without grounding...`);
+          config.tools = undefined;
+          continue; // retry
+        }
+        if (attempts < 2 && err.message?.includes("missing required information")) {
+          console.warn(`[GeminiProvider] Validation failed. Retrying (attempt ${attempts + 1})...`);
+          continue;
+        }
+        if (attempts >= 2) throw err;
       }
     }
 
-    const parsed = parseJsonFromLlmText(response.text || "");
-    if (!parsed || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
-      throw new Error(`Invalid or empty response structure from ${this.name}`);
-    }
-
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    const groundingChunks = response?.candidates?.[0]?.groundingMetadata?.groundingChunks;
 
     return {
       category: parsed.category,
@@ -97,33 +99,34 @@ export class GeminiProvider implements AIProvider {
     }
 
     let response;
-    try {
-      response = await ai.models.generateContent({
-        model: this.modelName,
-        contents: prompt,
-        config,
-      });
-    } catch (err: any) {
-      if (this.useSearchGrounding) {
-        console.warn(`[GeminiProvider] Search-grounded analysis failed for ${this.modelName}: ${err?.message || err}. Retrying without grounding...`);
+    let parsed;
+    let attempts = 0;
+
+    while (attempts < 2) {
+      attempts++;
+      try {
         response = await ai.models.generateContent({
           model: this.modelName,
           contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
+          config,
         });
-      } else {
-        throw err;
+        parsed = parseAndValidateJson(response.text || "", FullAnalysisSchema, this.name);
+        break;
+      } catch (err: any) {
+        if (this.useSearchGrounding && err.message?.includes("grounding") && attempts === 1) {
+          console.warn(`[GeminiProvider] Search-grounded analysis failed for ${this.modelName}: ${err?.message || err}. Retrying without grounding...`);
+          config.tools = undefined;
+          continue;
+        }
+        if (attempts < 2 && err.message?.includes("missing required information")) {
+          console.warn(`[GeminiProvider] Validation failed. Retrying (attempt ${attempts + 1})...`);
+          continue;
+        }
+        if (attempts >= 2) throw err;
       }
     }
 
-    const parsed = parseJsonFromLlmText(response.text || "");
-    if (!parsed || !parsed.options || !parsed.criteria) {
-      throw new Error(`Invalid or missing options/criteria in response from ${this.name}`);
-    }
-
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    const groundingChunks = response?.candidates?.[0]?.groundingMetadata?.groundingChunks;
 
     return {
       ...parsed,
@@ -137,17 +140,31 @@ export class GeminiProvider implements AIProvider {
     if (!ai) throw new Error(`${this.name} API key not configured`);
 
     const prompt = buildSuggestionsPrompt(topic, options, criteria);
-    const response = await ai.models.generateContent({
-      model: this.modelName,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      },
-    });
+    const config: any = {
+      responseMimeType: "application/json",
+    };
 
-    const parsed = parseJsonFromLlmText(response.text || "");
-    if (!parsed || !Array.isArray(parsed.suggestedOptions)) {
-      throw new Error(`Invalid suggestions payload from ${this.name}`);
+    let response;
+    let parsed;
+    let attempts = 0;
+
+    while (attempts < 2) {
+      attempts++;
+      try {
+        response = await ai.models.generateContent({
+          model: this.modelName,
+          contents: prompt,
+          config,
+        });
+        parsed = parseAndValidateJson(response.text || "", SuggestionsSchema, this.name);
+        break;
+      } catch (err: any) {
+        if (attempts < 2 && err.message?.includes("missing required information")) {
+          console.warn(`[GeminiProvider] Validation failed. Retrying (attempt ${attempts + 1})...`);
+          continue;
+        }
+        if (attempts >= 2) throw err;
+      }
     }
 
     return {
@@ -161,17 +178,31 @@ export class GeminiProvider implements AIProvider {
     if (!ai) throw new Error(`${this.name} API key not configured`);
 
     const prompt = buildMatrixAnalysisPrompt(matrixData);
-    const response = await ai.models.generateContent({
-      model: this.modelName,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      },
-    });
+    const config: any = {
+      responseMimeType: "application/json",
+    };
 
-    const parsed = parseJsonFromLlmText(response.text || "");
-    if (!parsed || !parsed.winnerSummary) {
-      throw new Error(`Invalid matrix analysis payload from ${this.name}`);
+    let response;
+    let parsed;
+    let attempts = 0;
+
+    while (attempts < 2) {
+      attempts++;
+      try {
+        response = await ai.models.generateContent({
+          model: this.modelName,
+          contents: prompt,
+          config,
+        });
+        parsed = parseAndValidateJson(response.text || "", MatrixAnalysisSchema, this.name);
+        break;
+      } catch (err: any) {
+        if (attempts < 2 && err.message?.includes("missing required information")) {
+          console.warn(`[GeminiProvider] Validation failed. Retrying (attempt ${attempts + 1})...`);
+          continue;
+        }
+        if (attempts >= 2) throw err;
+      }
     }
 
     return {

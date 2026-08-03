@@ -342,28 +342,16 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowAddCriterion(true)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Dimension</span>
-            </button>
-
-            <button
-              onClick={() => setShowAddOption(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Choice</span>
-            </button>
-          </div>
+          {/* Removed Add Dimension and Add Choice buttons as requested */}
         </div>
 
         {/* Detailed Matrix Table */}
-        <div className="overflow-x-auto scrollbar-thin">
-          <table className="w-full text-left border-collapse min-w-[720px]">
+        <div className="relative group">
+          {/* Mobile Swipe Hint Fade */}
+          <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none md:hidden z-10 opacity-70"></div>
+          
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full text-left border-collapse min-w-[720px]">
             <thead>
               <tr className="bg-slate-950 border-b border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
                 <th className="p-4 w-64 min-w-[240px] border-r border-slate-800">
@@ -477,6 +465,7 @@ export const MatrixView: React.FC<MatrixViewProps> = ({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

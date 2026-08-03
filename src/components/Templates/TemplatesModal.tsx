@@ -3,17 +3,18 @@ import { BookmarkCheck, X, Briefcase, Home, Code, Palmtree, ArrowRight } from 'l
 import { PRESET_TEMPLATES } from '../../data/templates';
 import { DecisionProject, Option, Criterion } from '../../types/decision';
 
+import { useAppStore } from '../../store/useAppStore';
+
 interface TemplatesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   onSelectTemplate: (project: DecisionProject) => void;
 }
 
 export const TemplatesModal: React.FC<TemplatesModalProps> = ({
-  isOpen,
-  onClose,
   onSelectTemplate,
 }) => {
+  const { showTemplatesModal: isOpen, setShowTemplatesModal } = useAppStore();
+  const onClose = () => setShowTemplatesModal(false);
+
   if (!isOpen) return null;
 
   const handleApplyTemplate = (template: typeof PRESET_TEMPLATES[0]) => {

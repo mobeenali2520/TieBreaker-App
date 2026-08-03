@@ -1,8 +1,10 @@
+import { z } from 'zod';
+
 /**
  * Clean and parse JSON from LLM output (handles codeblocks, leading/trailing whitespace, etc.)
  */
-export function parseJsonFromLlmText(text: string): any {
-  if (!text) return null;
+export function cleanLlmJsonText(text: string): string {
+  if (!text) return "";
   let cleaned = text.trim();
   
   // Remove markdown code fence wrapper if present
@@ -17,37 +19,63 @@ export function parseJsonFromLlmText(text: string): any {
     cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
 
+  return cleaned;
+}
+
+export function parseJsonFromLlmText(text: string): any {
   try {
-    return JSON.parse(cleaned);
+    return JSON.parse(cleanLlmJsonText(text));
   } catch (err) {
     console.error("Failed to parse JSON from LLM output:", err, "Raw snippet:", text.slice(0, 200));
     return null;
   }
 }
 
-export function buildIntakePrompt(dilemma: string, rawOptions?: string[]): string {
-  return `You are the Question Generation Engine for "The Tiebreaker".
-Your job is to gather the minimum information necessary to produce an accurate, highly personalized decision analysis.
+export function parseAndValidateJson<T>(text: string, schema: z.ZodType<T>, providerName: string): T {
+  const cleaned = cleanLlmJsonText(text);
+  
+  let parsedJson;
+  try {
+    parsedJson = JSON.parse(cleaned);
+  } catch (err) {
+    console.error(`[${providerName}] Invalid JSON format.`, err);
+    throw new Error(`The AI returned an invalid response format that could not be read.`);
+  }
 
-Core Rules:
-1. NEVER ask generic or repetitive questions.
-2. NEVER reuse the same generic template questions for every decision.
-3. Understand what the user is trying to decide and generate adaptive follow-up questions tailored specifically to their decision domain.
+  const result = schema.safeParse(parsedJson);
+  if (!result.success) {
+    console.error(`[${providerName}] Zod Schema Validation Failed:`, result.error.format());
+    console.error("Invalid Payload Shape:", JSON.stringify(parsedJson, null, 2).slice(0, 500));
+    throw new Error(`The AI response was missing required information. Please try again.`);
+  }
+
+  return result.data;
+}
+
+export function buildIntakePrompt(dilemma: string, rawOptions?: string[]): string {
+  return `You are a world-class executive coach, seasoned consultant, and expert strategist helping a user with a crucial decision.
+Your job is to ask the exact right questions that get to the absolute core of the user's dilemma.
+
+Core Rules for the Turing Test:
+1. NEVER sound like a generic AI or a basic decision-tree bot. Your questions must be highly intelligent, probing, non-obvious, and intensely tailored to the specific nuance of the user's dilemma.
+2. Assume the persona of an expert in the domain of the decision (e.g., a CTO for tech choices, a seasoned financial advisor for money, a veteran admissions counselor for colleges).
+3. Ask the questions a human expert would ask to immediately expose the true trade-offs, hidden constraints, and psychological biases at play.
+4. The options/answers you provide must be highly realistic, conversational, and deeply specific to the situation, not generic buckets.
 
 Step 1 — Detect Decision Category:
-Automatically infer the category of the user's decision (e.g., University Selection, Career Decision, Job Offer, Higher Education, Buying a Product, Financial Investment, Business Strategy, Travel, Health & Fitness, Relationships, Technology, Programming, AI Tools, Lifestyle, Real Estate, Vehicle Purchase, Hiring, Team Management, etc.).
+Automatically infer the deep domain of the user's decision.
 
 Step 2 — Detect Compared Options:
-Identify Option A, Option B, etc., if mentioned or implied (e.g. User: "PIEAS or NUST?" -> Option A = PIEAS, Option B = NUST; User: "React vs Next.js" -> Option A = React, Option B = Next.js).
+Identify Option A, Option B, etc., if mentioned or implied.
 
-Step 3 — Generate Adaptive Questions:
-Generate EXACTLY 3 intelligent, domain-specific clarifying questions that maximize useful information.
-Avoid simple yes/no questions unless unavoidable. Ask only what materially affects the decision recommendation and criteria weighting.
+Step 3 — Generate Adaptive Expert Questions:
+Generate EXACTLY 3 brilliant, domain-specific clarifying questions that maximize useful information.
+Instead of "What is your budget?", ask something like "Are you optimizing for immediate cash-flow preservation or maximum long-term scale?". Make the user think "Wow, this person really understands my situation."
 
 Step 4 — Personalize Questions with Component Types:
 Assign appropriate interactive UI component types to each question. Supported types:
-- "single_select" (Provide 4-5 relevant choices)
-- "multi_select" (Provide 4-5 choices that can be combined)
+- "single_select" (Provide 4-5 highly specific, realistic conversational choices)
+- "multi_select" (Provide 4-5 nuanced choices that can be combined)
 - "dropdown" (Provide select options)
 - "slider" (Provide min, max, step, e.g., min: 1, max: 10, step: 1)
 - "budget_range" (Provide budget options or range)
@@ -60,32 +88,32 @@ ${rawOptions && rawOptions.length > 0 ? `User Provided Candidate Choices: ${rawO
 
 Return ONLY a valid JSON object matching this schema:
 {
-  "category": "Detected Category (e.g. University Selection, Programming, Vehicle Purchase, etc.)",
+  "category": "Detected Category",
   "options": ["Option A Name", "Option B Name"],
   "questions": [
     {
       "id": "q1",
-      "question": "Domain-specific, intelligent question 1?",
+      "question": "Probing, expert-level, non-obvious question 1?",
       "type": "single_select",
-      "contextNote": "1-sentence explanation of why this question matters for criteria weighting",
+      "contextNote": "1-sentence explanation of why an expert asks this",
       "placeholder": "Helpful placeholder text...",
-      "options": ["Choice 1", "Choice 2", "Choice 3", "Choice 4", "Choice 5"]
+      "options": ["Highly specific choice A", "Nuanced choice B", "Expert-level choice C", "Pragmatic choice D"]
     },
     {
       "id": "q2",
-      "question": "Domain-specific, intelligent question 2?",
+      "question": "Probing, expert-level, non-obvious question 2?",
       "type": "single_select",
-      "contextNote": "1-sentence explanation of why this question matters for criteria weighting",
+      "contextNote": "1-sentence explanation of why an expert asks this",
       "placeholder": "Helpful placeholder text...",
-      "options": ["Choice 1", "Choice 2", "Choice 3", "Choice 4", "Choice 5"]
+      "options": ["Highly specific choice A", "Nuanced choice B", "Expert-level choice C", "Pragmatic choice D"]
     },
     {
       "id": "q3",
-      "question": "Domain-specific, intelligent question 3?",
+      "question": "Probing, expert-level, non-obvious question 3?",
       "type": "single_select",
-      "contextNote": "1-sentence explanation of why this question matters for criteria weighting",
+      "contextNote": "1-sentence explanation of why an expert asks this",
       "placeholder": "Helpful placeholder text...",
-      "options": ["Choice 1", "Choice 2", "Choice 3", "Choice 4", "Choice 5"]
+      "options": ["Highly specific choice A", "Nuanced choice B", "Expert-level choice C", "Pragmatic choice D"]
     }
   ]
 }`;

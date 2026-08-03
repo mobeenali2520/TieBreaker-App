@@ -8,7 +8,8 @@ import {
   ShieldAlert, 
   Plus, 
   Trash2,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 
 interface SwotMatrixViewProps {
@@ -34,6 +35,12 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
   const [showAddModal, setShowAddModal] = useState<
     'strengths' | 'weaknesses' | 'opportunities' | 'threats' | null
   >(null);
+  
+  // Accordion state for mobile
+  const [expandedQuadrant, setExpandedQuadrant] = useState<
+    'strengths' | 'weaknesses' | 'opportunities' | 'threats' | null
+  >('strengths');
+
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemDesc, setNewItemDesc] = useState('');
   const [newItemImpact, setNewItemImpact] = useState(85);
@@ -189,24 +196,30 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* QUADRANT 1: STRENGTHS (GREEN / EMERALD) */}
-        <div className="bg-slate-950/80 border-2 border-emerald-500/40 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-emerald-500/20 pb-3">
+        <div className="bg-slate-950/80 border-2 border-emerald-500/40 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl">
+          <div 
+            className="flex items-center justify-between border-b border-emerald-500/20 pb-3 cursor-pointer md:cursor-auto"
+            onClick={() => window.innerWidth < 768 && setExpandedQuadrant(expandedQuadrant === 'strengths' ? null : 'strengths')}
+          >
             <div className="flex items-center gap-2 text-emerald-400">
               <CheckCircle2 className="w-5 h-5" />
               <h3 className="font-serif font-bold text-base text-emerald-400">
                 Strengths ({strengthsList.length})
               </h3>
             </div>
-            <button
-              onClick={() => setShowAddModal('strengths')}
-              className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-colors"
-              title="Add strength"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAddModal('strengths'); }}
+                className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-colors"
+                title="Add strength"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              <ChevronDown className={`w-5 h-5 text-emerald-500/70 md:hidden transition-transform duration-300 ${expandedQuadrant === 'strengths' ? 'rotate-180' : ''}`} />
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className={`space-y-3 pt-4 ${expandedQuadrant === 'strengths' ? 'block' : 'hidden md:block'}`}>
             {strengthsList.map((card, idx) => (
               <div
                 key={card.id}
@@ -235,24 +248,30 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
         </div>
 
         {/* QUADRANT 2: WEAKNESSES (AMBER / GOLD) */}
-        <div className="bg-slate-950/80 border-2 border-amber-500/40 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+        <div className="bg-slate-950/80 border-2 border-amber-500/40 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl">
+          <div 
+            className="flex items-center justify-between border-b border-amber-500/20 pb-3 cursor-pointer md:cursor-auto"
+            onClick={() => window.innerWidth < 768 && setExpandedQuadrant(expandedQuadrant === 'weaknesses' ? null : 'weaknesses')}
+          >
             <div className="flex items-center gap-2 text-amber-400">
               <AlertTriangle className="w-5 h-5" />
               <h3 className="font-serif font-bold text-base text-amber-400">
                 Weaknesses ({weaknessesList.length})
               </h3>
             </div>
-            <button
-              onClick={() => setShowAddModal('weaknesses')}
-              className="p-1.5 text-amber-400 hover:bg-amber-500/20 rounded-xl transition-colors"
-              title="Add weakness"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAddModal('weaknesses'); }}
+                className="p-1.5 text-amber-400 hover:bg-amber-500/20 rounded-xl transition-colors"
+                title="Add weakness"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              <ChevronDown className={`w-5 h-5 text-amber-500/70 md:hidden transition-transform duration-300 ${expandedQuadrant === 'weaknesses' ? 'rotate-180' : ''}`} />
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className={`space-y-3 pt-4 ${expandedQuadrant === 'weaknesses' ? 'block' : 'hidden md:block'}`}>
             {weaknessesList.map((card, idx) => (
               <div
                 key={card.id}
@@ -281,24 +300,30 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
         </div>
 
         {/* QUADRANT 3: OPPORTUNITIES (INDIGO / BLUE) */}
-        <div className="bg-slate-950/80 border-2 border-indigo-500/40 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-indigo-500/20 pb-3">
+        <div className="bg-slate-950/80 border-2 border-indigo-500/40 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl">
+          <div 
+            className="flex items-center justify-between border-b border-indigo-500/20 pb-3 cursor-pointer md:cursor-auto"
+            onClick={() => window.innerWidth < 768 && setExpandedQuadrant(expandedQuadrant === 'opportunities' ? null : 'opportunities')}
+          >
             <div className="flex items-center gap-2 text-indigo-400">
               <Sparkles className="w-5 h-5" />
               <h3 className="font-serif font-bold text-base text-indigo-400">
                 Opportunities ({opportunitiesList.length})
               </h3>
             </div>
-            <button
-              onClick={() => setShowAddModal('opportunities')}
-              className="p-1.5 text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-colors"
-              title="Add opportunity"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAddModal('opportunities'); }}
+                className="p-1.5 text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-colors"
+                title="Add opportunity"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              <ChevronDown className={`w-5 h-5 text-indigo-500/70 md:hidden transition-transform duration-300 ${expandedQuadrant === 'opportunities' ? 'rotate-180' : ''}`} />
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className={`space-y-3 pt-4 ${expandedQuadrant === 'opportunities' ? 'block' : 'hidden md:block'}`}>
             {opportunitiesList.map((card, idx) => (
               <div
                 key={card.id}
@@ -327,24 +352,30 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
         </div>
 
         {/* QUADRANT 4: THREATS (ROSE / RED) */}
-        <div className="bg-slate-950/80 border-2 border-rose-500/40 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-rose-500/20 pb-3">
+        <div className="bg-slate-950/80 border-2 border-rose-500/40 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl">
+          <div 
+            className="flex items-center justify-between border-b border-rose-500/20 pb-3 cursor-pointer md:cursor-auto"
+            onClick={() => window.innerWidth < 768 && setExpandedQuadrant(expandedQuadrant === 'threats' ? null : 'threats')}
+          >
             <div className="flex items-center gap-2 text-rose-400">
               <ShieldAlert className="w-5 h-5" />
               <h3 className="font-serif font-bold text-base text-rose-400">
                 Threats ({threatsList.length})
               </h3>
             </div>
-            <button
-              onClick={() => setShowAddModal('threats')}
-              className="p-1.5 text-rose-400 hover:bg-rose-500/20 rounded-xl transition-colors"
-              title="Add threat"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAddModal('threats'); }}
+                className="p-1.5 text-rose-400 hover:bg-rose-500/20 rounded-xl transition-colors"
+                title="Add threat"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              <ChevronDown className={`w-5 h-5 text-rose-500/70 md:hidden transition-transform duration-300 ${expandedQuadrant === 'threats' ? 'rotate-180' : ''}`} />
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className={`space-y-3 pt-4 ${expandedQuadrant === 'threats' ? 'block' : 'hidden md:block'}`}>
             {threatsList.map((card, idx) => (
               <div
                 key={card.id}
