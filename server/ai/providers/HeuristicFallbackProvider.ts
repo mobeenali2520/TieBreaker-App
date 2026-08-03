@@ -12,93 +12,218 @@ export class HeuristicFallbackProvider implements AIProvider {
   async generateIntakeQuestions(dilemma: string, rawOptions?: string[]): Promise<IntakeQuestionsResult> {
     const dLower = (dilemma || "").toLowerCase();
 
+    // Check if explicit options were provided in rawOptions or embedded in dilemma (e.g., "vs", "or")
+    const hasExplicitOptions = (rawOptions && rawOptions.length > 0) || dLower.includes(" vs ") || dLower.includes(" or ");
+    
+    let detectedOptions: string[] = [];
+    if (rawOptions && rawOptions.length > 0) {
+      detectedOptions = rawOptions;
+    } else if (dLower.includes("pieas") && dLower.includes("nust")) {
+      detectedOptions = ["PIEAS", "NUST"];
+    } else if (dLower.includes("macbook") && dLower.includes("windows")) {
+      detectedOptions = ["Apple MacBook", "Windows Laptop"];
+    } else if (dLower.includes("python") && dLower.includes("c++")) {
+      detectedOptions = ["Python", "C++"];
+    }
+
+    // Check if field/major was already specified in dilemma
+    const knowsField = dLower.includes("computer science") || dLower.includes("cs") || dLower.includes("engineering") || dLower.includes("business") || dLower.includes("medical") || dLower.includes("finance");
+
+    let category = "General Strategic Analysis";
     let questions: ClarifyingQuestion[] = [];
 
-    if (dLower.includes("job") || dLower.includes("career") || dLower.includes("offer") || dLower.includes("role") || dLower.includes("salary")) {
+    // 1. University & Education Selection
+    if (dLower.includes("university") || dLower.includes("college") || dLower.includes("degree") || dLower.includes("pieas") || dLower.includes("nust") || dLower.includes("campus")) {
+      category = "University Selection";
+      if (!hasExplicitOptions && detectedOptions.length === 0) {
+        // Open-ended query (e.g. "Which university is best in Pakistan?")
+        questions = [
+          knowsField ? {
+            id: "q1",
+            question: "What is your primary career goal after graduating in your field?",
+            type: "single_select",
+            contextNote: "Directly determines weighting for research labs vs industry placement.",
+            placeholder: "Select career path...",
+            options: ["Private Sector Tech Job", "Higher Studies (MS/PhD Abroad)", "AI/ML Research & Academia", "Govt / Defence Sector", "Entrepreneurship"],
+          } : {
+            id: "q1",
+            question: "What is your intended field or major?",
+            type: "single_select",
+            contextNote: "Essential to compare department-specific faculty, labs, and accreditation.",
+            placeholder: "Select major...",
+            options: ["Computer Science & Software", "Electrical / Electronics Engineering", "Mechanical / Aerospace", "Business & Finance", "Data Science & AI"],
+          },
+          {
+            id: "q2",
+            question: "Which evaluation criteria carry the highest weight for you?",
+            type: "multi_select",
+            contextNote: "Establishes your weighted decision matrix priority scores.",
+            placeholder: "Select priorities...",
+            options: ["Research Quality & Labs", "Tech Job Placement Rate", "Tuition & Hostel Affordability", "Campus Life & Location", "Global Alumni Network"],
+          },
+          {
+            id: "q3",
+            question: "What is your primary geographic or location requirement?",
+            type: "single_select",
+            contextNote: "Filters options by relocation feasibility and hostel availability.",
+            placeholder: "Select location preference...",
+            options: ["Islamabad / Rawalpindi Region", "Lahore Region", "Karachi Region", "Open to Relocating Anywhere with Hostel"],
+          },
+        ];
+      } else {
+        // Direct comparison (e.g. "PIEAS vs NUST")
+        const optName = detectedOptions.length > 0 ? detectedOptions.join(" vs ") : "these universities";
+        questions = [
+          {
+            id: "q1",
+            question: `What is your primary goal when choosing between ${optName}?`,
+            type: "single_select",
+            contextNote: "Weights core strategic drivers for your final recommendation.",
+            placeholder: "Select primary goal...",
+            options: ["Industry Placement & Salary", "Research Output & Lab Access", "Campus Life & Environment", "Low Tuition & Financial Feasibility"],
+          },
+          {
+            id: "q2",
+            question: "Which criteria carry the most weight in your matrix evaluation?",
+            type: "multi_select",
+            contextNote: "Determines weight ratios in your multi-criteria matrix.",
+            placeholder: "Select criteria...",
+            options: ["Faculty & Lab Facilities", "Industry Connection", "Hostel & Campus Environment", "Fee Structure"],
+          },
+          {
+            id: "q3",
+            question: "What non-negotiable baseline constraint must be met?",
+            type: "single_select",
+            contextNote: "Establishes hard veto conditions for your options.",
+            placeholder: "Select baseline constraint...",
+            options: ["PEC / HEC / ABET Accreditation", "On-Campus Hostel Available", "Affordable Fee Structure", "High Industry Placement Rate"],
+          },
+        ];
+      }
+    } 
+    // 2. Hardware / Laptop / Tech Purchase
+    else if (dLower.includes("laptop") || dLower.includes("macbook") || dLower.includes("buy") || dLower.includes("pc") || dLower.includes("computer")) {
+      category = "Technology & Hardware Purchase";
+      questions = [
+        {
+          id: "q1",
+          question: "What primary workload or use-case will dominate your daily use?",
+          type: "single_select",
+          contextNote: "Identifies required RAM, GPU, and processor specs.",
+          placeholder: "Select primary workload...",
+          options: ["Software Engineering & AI", "Video Editing & Graphic Design", "Gaming & Heavy Rendering", "Business & General Productivity"],
+        },
+        {
+          id: "q2",
+          question: "What is your target budget ceiling?",
+          type: "budget_range",
+          contextNote: "Sets cost threshold for option candidates.",
+          placeholder: "Select budget range...",
+          options: ["Under $800", "$800 - $1,500", "$1,500 - $2,500", "$2,500+"],
+        },
+        {
+          id: "q3",
+          question: "Which hardware priorities are non-negotiable?",
+          type: "multi_select",
+          contextNote: "Weights mobility vs raw performance.",
+          placeholder: "Select priorities...",
+          options: ["All-Day Battery Life (10+ hrs)", "Maximum CPU / GPU Power", "Lightweight & Portable", "macOS Ecosystem", "Linux / Windows Compatibility"],
+        },
+      ];
+    }
+    // 3. Career & Job Offer Decisions
+    else if (dLower.includes("job") || dLower.includes("career") || dLower.includes("offer") || dLower.includes("role") || dLower.includes("salary")) {
+      category = "Career Decision";
       questions = [
         {
           id: "q1",
           question: "What is your primary driver for this career decision?",
-          contextNote: "Directly weights total cash compensation & title vs culture & long-term skill acquisition.",
-          placeholder: "e.g. Higher base salary, remote flexibility, growth potential...",
-          options: ["Higher Total Compensation", "Accelerated Career Growth", "Work-Life Balance & Remote Flexibility", "Company Culture & Mission"],
+          type: "single_select",
+          contextNote: "Weights cash compensation vs culture and long-term growth.",
+          placeholder: "Select primary driver...",
+          options: ["Higher Total Compensation", "Accelerated Career Growth & Title", "Work-Life Balance & WFH", "Company Culture & Mission"],
         },
         {
           id: "q2",
           question: "What non-negotiable floor or baseline constraint must be met?",
-          contextNote: "Establishes strict veto criteria for salary or lifestyle requirements.",
-          placeholder: "e.g. Minimum $130k base, max 30 min commute...",
-          options: ["Strict Salary Baseline", "Max 40-hour work week", "100% Remote / Hybrid Option", "Stable Public / Enterprise Company"],
+          type: "single_select",
+          contextNote: "Establishes strict veto criteria.",
+          placeholder: "Select baseline constraint...",
+          options: ["Strict Minimum Base Salary", "Max 40-Hour Work Week", "100% Remote / Hybrid Option", "Stable Enterprise Employer"],
         },
         {
           id: "q3",
           question: "What is your risk tolerance over the next 2-3 years?",
-          contextNote: "Determines weighting for organizational stability vs high-equity upside.",
-          placeholder: "e.g. Low risk (prefer stable public firm), or high risk (startup equity)...",
-          options: ["Low (High Job Security & Stability)", "Moderate (Calculated Mid-stage Growth)", "High (Early Startup / High Equity Volatility)"],
+          type: "single_select",
+          contextNote: "Calibrates stability vs high-equity upside.",
+          placeholder: "Select risk profile...",
+          options: ["Low (High Job Security & Stability)", "Moderate (Calculated Growth)", "High (Early Startup / High Equity)"],
         },
       ];
-    } else if (dLower.includes("buy") || dLower.includes("house") || dLower.includes("car") || dLower.includes("invest") || dLower.includes("finance") || dLower.includes("money")) {
+    }
+    // 4. General Strategic Fallback
+    else {
+      category = "General Strategic Analysis";
       questions = [
         {
           id: "q1",
-          question: "What is your maximum upfront capital allocation and budget ceiling?",
-          contextNote: "Prevents overexposure and establishes cost weighting in the matrix.",
-          placeholder: "e.g. $50,000 upfront max, or $2,500/mo cashflow limit...",
-          options: ["Strict Upfront Cap", "Monthly Cashflow Efficiency", "Long-term Capital ROI"],
-        },
-        {
-          id: "q2",
-          question: "What core problem or utility are you seeking from this expenditure?",
-          contextNote: "Separates essential utility value from luxury/lifestyle enhancements.",
-          placeholder: "e.g. Daily time savings, asset appreciation, family comfort...",
-          options: ["Time Savings & Convenience", "Lifestyle Comfort & Quality", "Asset Growth & ROI"],
-        },
-        {
-          id: "q3",
-          question: "How much buffer do you have for unexpected maintenance or market drops?",
-          contextNote: "Informs the risk sensitivity analysis.",
-          placeholder: "e.g. 20% emergency buffer available...",
-          options: ["Minimal Buffer (Low Risk Tolerance)", "10-20% Buffer (Moderate)", "Generous Buffer (High Risk Tolerance)"],
-        },
-      ];
-    } else {
-      questions = [
-        {
-          id: "q1",
-          question: "What is the single most critical outcome that defines success for this choice?",
+          question: "What primary outcome defines success for this decision?",
+          type: "single_select",
           contextNote: "Establishes the highest-weighted strategic criterion.",
-          placeholder: "e.g. Long-term peace of mind, maximum ROI, speed of execution...",
-          options: ["Time & Speed to Results", "Financial Growth & ROI", "Quality & Personal Peace of Mind", "Risk Avoidance"],
+          placeholder: "Select primary outcome...",
+          options: ["Time Efficiency & Speed", "Financial ROI & Value", "Quality & Peace of Mind", "Risk Avoidance"],
         },
         {
           id: "q2",
-          question: "What key constraint or resource limit restricts your choices?",
+          question: "What key constraint restricts your choices?",
+          type: "multi_select",
           contextNote: "Sets boundary conditions for cost, capacity, and timelines.",
-          placeholder: "e.g. 30-day deadline, limited budget, team capacity...",
-          options: ["Strict Timeline", "Financial Capital Limit", "Skills / Bandwidth Constraint", "Personal / Family Commitments"],
+          placeholder: "Select constraints...",
+          options: ["Tight Deadline", "Budget Cap", "Skills / Capacity Limit", "Personal Commitments"],
         },
         {
           id: "q3",
-          question: "What is your biggest fear or regret if this decision goes wrong?",
-          contextNote: "Powers Devil's Advocate and Blind Spot stress tests.",
-          placeholder: "e.g. Sunk cost fallacy, burnout, missed alternative opportunity...",
-          options: ["Financial Loss", "Wasted Time / Momentum", "Mental Burnout", "Missed Alternative Opportunities"],
+          question: "What is your biggest concern or risk factor if this choice goes wrong?",
+          type: "single_select",
+          contextNote: "Powers Devil's Advocate and Blind Spot detection.",
+          placeholder: "Select risk factor...",
+          options: ["Financial Loss", "Wasted Time & Momentum", "Burnout & Stress", "Opportunity Cost"],
         },
       ];
     }
 
     return {
+      category,
+      options: detectedOptions,
       questions,
       providerUsed: this.name,
     };
   }
 
   async generateFullAnalysis(dilemma: string, answers: Record<string, string>, optionsList: string[] = []): Promise<FullAnalysisResult> {
+    const dLower = (dilemma || "").toLowerCase();
     const cleanOptions = (optionsList || []).filter((o) => o.trim().length > 0);
-    const opts = cleanOptions.length >= 2 
-      ? cleanOptions.slice(0, 4) 
-      : ["Strategic Option A (Recommended Path)", "Strategic Option B (Conservative Path)"];
+
+    let opts: string[] = [];
+    if (cleanOptions.length >= 2) {
+      opts = cleanOptions.slice(0, 4);
+    } else {
+      // Deduce candidates based on dilemma & user answers
+      const allText = (dLower + " " + Object.values(answers).join(" ")).toLowerCase();
+      if (allText.includes("university") || allText.includes("college") || allText.includes("degree") || allText.includes("pakistan")) {
+        if (allText.includes("business")) {
+          opts = ["LUMS (SDA School of Business)", "IBA Karachi", "NUST Business School"];
+        } else {
+          opts = ["NUST (School of Electrical Engineering & CS)", "FAST-NUCES (CS Department)", "LUMS (School of Science & Engineering)", "PIEAS (Computer & Information Sciences)"];
+        }
+      } else if (allText.includes("laptop") || allText.includes("macbook") || allText.includes("computer")) {
+        opts = ["Apple MacBook Air / Pro", "Dell XPS Series", "Lenovo ThinkPad / Legion"];
+      } else if (allText.includes("job") || allText.includes("career") || allText.includes("offer")) {
+        opts = ["Accept Primary Offer / Role A", "Retain Current Role / Explore Secondary Path"];
+      } else {
+        opts = ["Strategic Path A (High Upside)", "Strategic Path B (Balanced Alternative)"];
+      }
+    }
 
     const colors = ["#6366f1", "#10b981", "#f59e0b", "#ec4899"];
 
@@ -106,49 +231,44 @@ export class HeuristicFallbackProvider implements AIProvider {
       id: `opt_${Date.now()}_${i + 1}`,
       name,
       color: colors[i % colors.length],
-      description: `Targeted operational pathway for ${name}`,
+      description: `Tailored candidate pathway for ${name}`,
     }));
+
+    // Extract user selected priorities from answers
+    const userAnsStr = Object.values(answers).join(" ");
 
     const criteria: Criterion[] = [
       {
         id: "crit_1",
-        name: "Strategic Value & Long-Term Upside",
+        name: "Strategic Value & Core Alignment",
         weight: 9,
         isPositive: true,
         category: "STRATEGIC",
-        description: "Measures alignment with core long-term trajectory and value creation.",
+        description: "Measures direct alignment with your stated primary goals.",
       },
       {
         id: "crit_2",
-        name: "Total Capital & Resource Commitment",
+        name: "Cost & Resource Commitment",
         weight: 8,
         isPositive: false,
         category: "FINANCIAL",
-        description: "Evaluates upfront investment, ongoing overhead, and opportunity cost.",
+        description: "Evaluates financial expenditure, tuition, and resource load.",
       },
       {
         id: "crit_3",
-        name: "Execution Feasibility & Speed",
-        weight: 7,
+        name: "Execution Feasibility & Environment",
+        weight: 8,
         isPositive: true,
         category: "OPERATIONAL",
-        description: "Speed to value and ease of implementation with minimal friction.",
+        description: "Quality of facilities, faculty, network, or daily experience.",
       },
       {
         id: "crit_4",
-        name: "Downside Risk & Reversibility",
-        weight: 8,
+        name: "Downside Risk & Flexibility",
+        weight: 7,
         isPositive: false,
         category: "RISK",
-        description: "Exposure to worst-case scenarios and flexibility to pivot if needed.",
-      },
-      {
-        id: "crit_5",
-        name: "Personal Alignment & Peace of Mind",
-        weight: 8,
-        isPositive: true,
-        category: "PERSONAL",
-        description: "Intrinsic motivation, stress levels, and quality of life impact.",
+        description: "Risk exposure and ability to adjust course if parameters change.",
       },
     ];
 
@@ -159,9 +279,9 @@ export class HeuristicFallbackProvider implements AIProvider {
         if (oIdx === 0) {
           baseScore = crit.isPositive ? 8.5 : 4;
         } else if (oIdx === 1) {
-          baseScore = crit.isPositive ? 6.5 : 6;
+          baseScore = crit.isPositive ? 7.5 : 5;
         } else {
-          baseScore = 6;
+          baseScore = 6.5;
         }
         scores[`${opt.id}_${crit.id}`] = Math.round(baseScore);
       });
@@ -171,21 +291,20 @@ export class HeuristicFallbackProvider implements AIProvider {
     options.forEach((opt) => {
       swot[opt.id] = {
         strengths: [
-          `Strong strategic upside in ${opt.name}`,
-          `Directly answers primary objective: "${answers["q1"] || "Strategic Growth"}"`,
-          `Clear execution trajectory with high initial momentum`,
+          `Strong reputation and proven track record in ${opt.name}`,
+          `Direct alignment with your selected focus: "${answers["q1"] || "Primary Goals"}"`,
         ],
         weaknesses: [
-          `Initial adaptation period and operational friction`,
-          `Requires focused resource allocation in early phases`,
+          `Requires dedicated effort and adjustment during initial onboarding`,
+          `Capacity limits or competitive entry requirements`,
         ],
         opportunities: [
-          `Positions user strongly for compounding gains over a 10-month horizon`,
-          `Creates leverage for subsequent strategic expansions`,
+          `Positions you strongly for future compounding gains over a multi-year horizon`,
+          `Access to specialized networks and resources`,
         ],
         threats: [
-          `Uncertainty in broader external market or domain conditions`,
-          `Opportunity cost of deferring secondary alternatives`,
+          `Changing external domain or market conditions`,
+          `Opportunity cost of setting aside alternative options`,
         ],
       };
     });
@@ -197,65 +316,64 @@ export class HeuristicFallbackProvider implements AIProvider {
         id: "bs1",
         category: "OPPORTUNITY COST",
         title: "Sunk Cost Bias Avoidance",
-        description: "Ensure past investments of time or money are not distorting future expected value calculations.",
+        description: "Ensure past investments of time or effort do not distort future expected value.",
         severity: "high",
-        mitigation: "Evaluate choices strictly on zero-based future expected ROI over the next 12-24 months.",
+        mitigation: "Evaluate choices strictly on zero-based future expected value over the next 12-24 months.",
       },
       {
         id: "bs2",
         category: "FRICTION",
-        title: "Underestimating Transition Overhead",
-        description: "Switching pathways often introduces 20-30% more short-term cognitive load than anticipated.",
+        title: "Underestimating Onboarding Overhead",
+        description: "Transitioning to a new path often introduces short-term cognitive load.",
         severity: "medium",
-        mitigation: "Build a 30-day onboarding buffer to absorb initial operational friction.",
+        mitigation: "Build an explicit 30-day onboarding phase to absorb initial friction.",
       },
     ];
 
     const devilsAdvocate: DevilsAdvocate = {
       targetOptionId: winnerOpt.id,
       targetOptionName: winnerOpt.name,
-      counterSeverity: 76,
-      counterTitle: "Execution Friction & Opportunity Cost Challenge",
-      counterArgument: `While ${winnerOpt.name} scores highest on mathematical alignment, committing to it sacrifices the immediate predictability of alternate paths. Validate that your bandwidth is sufficient before locking in this choice.`,
+      counterSeverity: 75,
+      counterTitle: "Trade-off & Execution Challenge",
+      counterArgument: `While ${winnerOpt.name} achieves top mathematical score across your evaluation criteria, committing to it requires accepting its specific trade-offs over alternative candidates.`,
       keyRisks: [
-        "Transition friction in the first 30 days",
-        "Short-term bandwidth tax on current commitments"
+        "Initial transition friction during the first 30 days",
+        "Resource load before full returns materialize"
       ],
       challengingQuestions: [
-        `If ${winnerOpt.name} hits unexpected friction in 60 days, what is your contingency plan?`,
-        "What single factor would make you pivot away from this path?"
+        `If ${winnerOpt.name} encounters unexpected friction in 6 months, what is your contingency plan?`,
+        "What single factor would prompt you to reconsider this path?"
       ],
       unexaminedAssumptions: [
-        `Assumes market/environmental baseline remains stable during transition`,
-        `Assumes execution speed meets initial estimates without unexpected bottlenecks`,
-        `Assumes secondary stakeholders align smoothly with this trajectory`,
+        `Assumes environmental baseline remains stable during transition`,
+        `Assumes execution timeline meets initial estimates`,
       ],
     };
 
     const tenTenTen: TenTenTen = {
-      tenMinutes: `Initial clarity combined with healthy anticipatory focus. Action step: Document key milestones and notify relevant collaborators.`,
-      tenMonths: `Transition friction will have normalized, and ${winnerOpt.name} will be yielding steady compounding returns.`,
-      tenYears: `Viewed as a pivotal strategic decision where you acted with data-backed conviction rather than remaining trapped in analysis paralysis.`,
+      tenMinutes: `Initial clarity and focus upon establishing a clear top-ranked path. Action step: Document evaluation criteria.`,
+      tenMonths: `Potential 10-month outcome: Initial transition friction settles, yielding steady compounding progress in ${winnerOpt.name}.`,
+      tenYears: `Strategic long-term perspective: Viewed as a decisive milestone where you acted with data-backed clarity.`,
     };
 
     const verdict: FinalVerdict = {
-      executiveSummary: `Based on your stated preferences ("${answers["q1"] || "Strategic Growth"}"), ${winnerOpt.name} emerges as the optimal path with a high alignment score relative to alternatives.`,
+      executiveSummary: `Based on your selected preferences ("${answers["q1"] || answers["q2"] || "Core Criteria"}"), ${winnerOpt.name} achieves the highest weighted score in our analysis.`,
       recommendedOptionId: winnerOpt.id,
       recommendedOptionName: winnerOpt.name,
-      confidenceScore: 86,
+      confidenceScore: 82,
       keyReasons: [
-        `Achieves top weighted score across non-negotiable strategic criteria`,
-        `Superior upside-to-risk trade-off ratio`,
-        `Strong alignment with stated 10-month horizon outcomes`,
+        `Achieves top weighted performance across your selected evaluation metrics`,
+        `Balanced upside-to-risk trade-off ratio`,
+        `Favorable long-term strategic alignment`,
       ],
       primaryRisks: [
         `Initial transition friction during the first 30 days`,
-        `Short-term opportunity cost of setting aside alternative options`,
+        `Opportunity cost of deferring secondary alternatives`,
       ],
       suggestedNextSteps: [
-        `Set a firm 48-hour deadline to commit to ${winnerOpt.name}`,
-        `Draft a 30-day implementation checklist for execution`,
-        `Align key stakeholders and resources around this choice`,
+        `Review the weighted matrix grid to confirm your criteria scores`,
+        `Draft a 30-day action plan for ${winnerOpt.name}`,
+        `Communicate your decision to key stakeholders`,
       ],
     };
 

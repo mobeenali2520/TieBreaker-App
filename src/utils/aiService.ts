@@ -104,116 +104,126 @@ function getFallbackIntakeQuestions(
   rawOptions?: string[]
 ): { category: string; options: string[]; questions: ClarifyingQuestion[] } {
   const dLower = dilemma.toLowerCase();
+  const hasExplicitOptions = (rawOptions && rawOptions.length > 0) || dLower.includes(' vs ') || dLower.includes(' or ');
 
-  // University Selection (e.g., PIEAS vs NUST, Harvard vs Oxford)
-  if (dLower.includes('pieas') || dLower.includes('nust') || dLower.includes('university') || dLower.includes('college') || dLower.includes('degree') || dLower.includes('campus')) {
-    const inferredOptions = rawOptions && rawOptions.length > 0 ? rawOptions : (
-      dLower.includes('pieas') && dLower.includes('nust') ? ['PIEAS', 'NUST'] : ['University Option A', 'University Option B']
-    );
+  let detectedOptions: string[] = [];
+  if (rawOptions && rawOptions.length > 0) {
+    detectedOptions = rawOptions;
+  } else if (dLower.includes('pieas') && dLower.includes('nust')) {
+    detectedOptions = ['PIEAS', 'NUST'];
+  } else if (dLower.includes('macbook') && dLower.includes('windows')) {
+    detectedOptions = ['Apple MacBook', 'Windows Laptop'];
+  } else if (dLower.includes('python') && dLower.includes('c++')) {
+    detectedOptions = ['Python', 'C++'];
+  }
+
+  const knowsField = dLower.includes('computer science') || dLower.includes('cs') || dLower.includes('engineering') || dLower.includes('business') || dLower.includes('medical') || dLower.includes('finance');
+
+  // University Selection
+  if (dLower.includes('university') || dLower.includes('college') || dLower.includes('degree') || dLower.includes('pieas') || dLower.includes('nust') || dLower.includes('campus')) {
+    if (!hasExplicitOptions && detectedOptions.length === 0) {
+      // Open-ended query
+      return {
+        category: 'University Selection',
+        options: [],
+        questions: [
+          knowsField ? {
+            id: 'q1',
+            question: 'What is your primary career goal after graduating in your field?',
+            type: 'single_select',
+            contextNote: 'Directly determines weighting for research labs vs industry placement.',
+            placeholder: 'Select career path...',
+            options: ['Private Sector Tech Job', 'Higher Studies (MS/PhD Abroad)', 'AI/ML Research & Academia', 'Govt / Defence Sector', 'Entrepreneurship'],
+          } : {
+            id: 'q1',
+            question: 'What is your intended field or major?',
+            type: 'single_select',
+            contextNote: 'Essential to compare department-specific faculty, labs, and accreditation.',
+            placeholder: 'Select major...',
+            options: ['Computer Science & Software', 'Electrical / Electronics Engineering', 'Mechanical / Aerospace', 'Business & Finance', 'Data Science & AI'],
+          },
+          {
+            id: 'q2',
+            question: 'Which evaluation criteria carry the highest weight for you?',
+            type: 'multi_select',
+            contextNote: 'Establishes your weighted decision matrix priority scores.',
+            placeholder: 'Select priorities...',
+            options: ['Research Quality & Labs', 'Tech Job Placement Rate', 'Tuition & Hostel Affordability', 'Campus Life & Location', 'Global Alumni Network'],
+          },
+          {
+            id: 'q3',
+            question: 'What is your primary geographic or location requirement?',
+            type: 'single_select',
+            contextNote: 'Filters options by relocation feasibility and hostel availability.',
+            placeholder: 'Select location preference...',
+            options: ['Islamabad / Rawalpindi Region', 'Lahore Region', 'Karachi Region', 'Open to Relocating Anywhere with Hostel'],
+          },
+        ],
+      };
+    } else {
+      const optName = detectedOptions.length > 0 ? detectedOptions.join(' vs ') : 'these universities';
+      return {
+        category: 'University Selection',
+        options: detectedOptions,
+        questions: [
+          {
+            id: 'q1',
+            question: `What is your primary goal when choosing between ${optName}?`,
+            type: 'single_select',
+            contextNote: 'Weights core strategic drivers for your final recommendation.',
+            placeholder: 'Select primary goal...',
+            options: ['Industry Placement & Salary', 'Research Output & Lab Access', 'Campus Life & Environment', 'Low Tuition & Financial Feasibility'],
+          },
+          {
+            id: 'q2',
+            question: 'Which criteria carry the most weight in your matrix evaluation?',
+            type: 'multi_select',
+            contextNote: 'Determines weight ratios in your multi-criteria matrix.',
+            placeholder: 'Select criteria...',
+            options: ['Faculty & Lab Facilities', 'Industry Connection', 'Hostel & Campus Environment', 'Fee Structure'],
+          },
+          {
+            id: 'q3',
+            question: 'What non-negotiable baseline constraint must be met?',
+            type: 'single_select',
+            contextNote: 'Establishes hard veto conditions for your options.',
+            placeholder: 'Select baseline constraint...',
+            options: ['PEC / HEC / ABET Accreditation', 'On-Campus Hostel Available', 'Affordable Fee Structure', 'High Industry Placement Rate'],
+          },
+        ],
+      };
+    }
+  }
+
+  // Technology & Hardware Purchase
+  if (dLower.includes('laptop') || dLower.includes('macbook') || dLower.includes('buy') || dLower.includes('pc') || dLower.includes('computer')) {
     return {
-      category: 'University Selection',
-      options: inferredOptions,
+      category: 'Technology & Hardware Purchase',
+      options: detectedOptions,
       questions: [
         {
           id: 'q1',
-          question: 'What is your intended major or field of specialization?',
+          question: 'What primary workload or use-case will dominate your daily use?',
           type: 'single_select',
-          contextNote: 'Determines weight for faculty research vs department reputation',
-          placeholder: 'Select major or type custom field...',
-          options: ['Computer Science & Software', 'Electrical / Electronics Engineering', 'Mechanical / Aerospace', 'Physics & Nuclear Sciences', 'Data Science & AI'],
+          contextNote: 'Identifies required RAM, GPU, and processor specs.',
+          placeholder: 'Select primary workload...',
+          options: ['Software Engineering & AI', 'Video Editing & Graphic Design', 'Gaming & Heavy Rendering', 'Business & General Productivity'],
         },
         {
           id: 'q2',
-          question: 'What matters most to you when choosing a university?',
-          type: 'single_select',
-          contextNote: 'Establishes primary evaluation criteria weighting',
-          placeholder: 'Select core priority...',
-          options: ['Research & Lab Quality', 'Job Placement & Industry Network', 'Campus Life & Facilities', 'Low Tuition & Hostel Costs', 'International Opportunities'],
-        },
-        {
-          id: 'q3',
-          question: 'What is your long-term goal immediately after graduation?',
-          type: 'single_select',
-          contextNote: 'Calibrates trajectory for industry vs higher studies',
-          placeholder: 'Select career trajectory...',
-          options: ['Private Sector Tech Job', 'Higher Studies (MS/PhD Abroad)', 'Government / Defence Sector', 'Research & Academia', 'Entrepreneurship'],
-        },
-      ],
-    };
-  }
-
-  // Technology & Programming (e.g., React vs Next.js, Python vs Rust)
-  if (dLower.includes('react') || dLower.includes('next.js') || dLower.includes('python') || dLower.includes('rust') || dLower.includes('programming') || dLower.includes('tech stack') || dLower.includes('framework')) {
-    const inferredOptions = rawOptions && rawOptions.length > 0 ? rawOptions : (
-      dLower.includes('react') && dLower.includes('next') ? ['React', 'Next.js'] : ['Tech Choice A', 'Tech Choice B']
-    );
-    return {
-      category: 'Technology & Programming',
-      options: inferredOptions,
-      questions: [
-        {
-          id: 'q1',
-          question: 'What is your primary project goal or build requirement?',
-          type: 'single_select',
-          contextNote: 'Sets architectural constraints for performance and developer velocity',
-          placeholder: 'Select primary technical objective...',
-          options: ['SEO & Server-Side Rendering (SSR)', 'Single-Page Web App (SPA)', 'High-Performance API & Microservices', 'Cross-Platform App', 'Rapid MVP Prototyping'],
-        },
-        {
-          id: 'q2',
-          question: 'What is your team’s current experience and learning velocity?',
-          type: 'single_select',
-          contextNote: 'Weights learning curve against time-to-market',
-          placeholder: 'Select familiarity level...',
-          options: ['High Familiarity (Day 1 Productive)', 'Moderate (Can learn in 1-2 weeks)', 'Beginner / Complete Pivot'],
-        },
-        {
-          id: 'q3',
-          question: 'How critical is long-term ecosystem stability and scalability?',
-          type: 'priority_ranking',
-          contextNote: 'Ranks priorities between speed, performance, and maintenance',
-          placeholder: 'Select priority weighting...',
-          options: ['Time-to-Market Speed', 'Maximum Performance / Low Overhead', 'Ecosystem & Library Maturity', 'Developer Experience & Tooling'],
-        },
-      ],
-    };
-  }
-
-  // Buying Product / Laptop / Vehicle (e.g. Tesla vs BYD, MacBook vs XPS)
-  if (dLower.includes('buy') || dLower.includes('laptop') || dLower.includes('tesla') || dLower.includes('byd') || dLower.includes('car') || dLower.includes('vehicle') || dLower.includes('phone')) {
-    const inferredOptions = rawOptions && rawOptions.length > 0 ? rawOptions : (
-      dLower.includes('tesla') && dLower.includes('byd') ? ['Tesla', 'BYD'] : ['Product A', 'Product B']
-    );
-    return {
-      category: 'Vehicle & Product Purchase',
-      options: inferredOptions,
-      questions: [
-        {
-          id: 'q1',
-          question: 'What is your target budget range for this purchase?',
+          question: 'What is your target budget ceiling?',
           type: 'budget_range',
-          contextNote: 'Filters out option thresholds and total cost of ownership',
-          placeholder: 'Enter budget amount or range...',
-          options: ['Under $1,000', '$1,000 - $3,000', '$25,000 - $45,000', '$45,000 - $80,000', '$80,000+'],
-        },
-        {
-          id: 'q2',
-          question: 'What primary use-case will dominate your daily experience?',
-          type: 'single_select',
-          contextNote: 'Identifies core functional requirements',
-          placeholder: 'Select primary daily usage...',
-          options: ['Daily Commute & Efficiency', 'Heavy Workload / Professional Tech', 'Long Distance & Travel', 'Luxury & Brand Prestige', 'Family & Versatility'],
+          contextNote: 'Sets cost threshold for option candidates.',
+          placeholder: 'Select budget range...',
+          options: ['Under $800', '$800 - $1,500', '$1,500 - $2,500', '$2,500+'],
         },
         {
           id: 'q3',
-          question: 'How important is resale value and long-term maintenance cost?',
-          type: 'slider',
-          min: 1,
-          max: 10,
-          step: 1,
-          contextNote: 'Weights upfront price vs 3-5 year depreciation',
-          placeholder: 'Scale 1 (Low) to 10 (Critical)',
-          options: ['1 - Unimportant', '5 - Moderate Balance', '10 - Maximum Resale & Reliability'],
+          question: 'Which hardware priorities are non-negotiable?',
+          type: 'multi_select',
+          contextNote: 'Weights mobility vs raw performance.',
+          placeholder: 'Select priorities...',
+          options: ['All-Day Battery Life (10+ hrs)', 'Maximum CPU / GPU Power', 'Lightweight & Portable', 'macOS Ecosystem', 'Linux / Windows Compatibility'],
         },
       ],
     };
@@ -221,34 +231,33 @@ function getFallbackIntakeQuestions(
 
   // Career & Job Offers
   if (dLower.includes('job') || dLower.includes('career') || dLower.includes('offer') || dLower.includes('salary') || dLower.includes('role')) {
-    const inferredOptions = rawOptions && rawOptions.length > 0 ? rawOptions : ['Job Offer A', 'Job Offer B'];
     return {
       category: 'Career Decision',
-      options: inferredOptions,
+      options: detectedOptions,
       questions: [
         {
           id: 'q1',
-          question: 'What is your single highest priority for this next career move?',
+          question: 'What is your primary driver for this career decision?',
           type: 'single_select',
-          contextNote: 'Weights compensation vs long-term trajectory and balance',
+          contextNote: 'Weights cash compensation vs culture and long-term growth.',
           placeholder: 'Select primary driver...',
-          options: ['Base Salary & Cash Compensation', 'Career Acceleration & Title', 'Work-Life Balance & Remote Work', 'Company Mission & Engineering Culture'],
+          options: ['Higher Total Compensation', 'Accelerated Career Growth & Title', 'Work-Life Balance & WFH', 'Company Culture & Mission'],
         },
         {
           id: 'q2',
-          question: 'What non-negotiable financial or commute baseline do you require?',
+          question: 'What non-negotiable floor or baseline constraint must be met?',
           type: 'single_select',
-          contextNote: 'Sets hard filter constraints',
+          contextNote: 'Establishes strict veto criteria.',
           placeholder: 'Select baseline constraint...',
-          options: ['Strict Minimum Base Pay', 'Max 30-min Commute / Remote', 'Equity & Stock Options', 'Stable Enterprise Employer'],
+          options: ['Strict Minimum Base Salary', 'Max 40-Hour Work Week', '100% Remote / Hybrid Option', 'Stable Enterprise Employer'],
         },
         {
           id: 'q3',
-          question: 'What is your risk tolerance over a 3-year horizon?',
+          question: 'What is your risk tolerance over the next 2-3 years?',
           type: 'single_select',
-          contextNote: 'Calibrates stability vs high-upside equity',
+          contextNote: 'Calibrates stability vs high-equity upside.',
           placeholder: 'Select risk profile...',
-          options: ['Low (Prefer Stability & Security)', 'Moderate (Calculated Growth)', 'High (Startup Equity & High Upside)'],
+          options: ['Low (High Job Security & Stability)', 'Moderate (Calculated Growth)', 'High (Early Startup / High Equity)'],
         },
       ],
     };
@@ -256,32 +265,32 @@ function getFallbackIntakeQuestions(
 
   // General Decision Fallback
   return {
-    category: 'Executive Decision Analysis',
-    options: rawOptions && rawOptions.length > 0 ? rawOptions : ['Option Path A', 'Option Path B'],
+    category: 'General Strategic Analysis',
+    options: detectedOptions,
     questions: [
       {
         id: 'q1',
-        question: 'What key outcome or metric defines success for this decision?',
+        question: 'What primary outcome defines success for this decision?',
         type: 'single_select',
-        contextNote: 'Determines what factors carry the most weight in evaluation',
-        placeholder: 'Select primary success metric...',
-        options: ['Time Efficiency & Speed', 'Financial ROI & Cost Savings', 'Personal Satisfaction & Growth', 'Risk Minimization'],
+        contextNote: 'Establishes the highest-weighted strategic criterion.',
+        placeholder: 'Select primary outcome...',
+        options: ['Time Efficiency & Speed', 'Financial ROI & Value', 'Quality & Peace of Mind', 'Risk Avoidance'],
       },
       {
         id: 'q2',
-        question: 'What constraints or non-negotiable limits are you working within?',
+        question: 'What key constraint restricts your choices?',
         type: 'multi_select',
-        contextNote: 'Sets parameters for cost, time, and personal capacity',
-        placeholder: 'Select active constraints...',
-        options: ['Tight Deadline / Urgency', 'Strict Budget Cap', 'Skill / Resource Gap', 'Work-Life / Family Balance'],
+        contextNote: 'Sets boundary conditions for cost, capacity, and timelines.',
+        placeholder: 'Select constraints...',
+        options: ['Tight Deadline', 'Budget Cap', 'Skills / Capacity Limit', 'Personal Commitments'],
       },
       {
         id: 'q3',
-        question: 'What is your primary fear or worst-case scenario if you choose incorrectly?',
+        question: 'What is your biggest concern or risk factor if this choice goes wrong?',
         type: 'single_select',
-        contextNote: 'Helps construct Devil\'s Advocate and Blind Spot detection',
-        placeholder: 'Select primary risk factor...',
-        options: ['Financial Loss', 'Wasted Time / Delay', 'Burnout & Stress', 'Regret & Missed Opportunity Cost'],
+        contextNote: 'Powers Devil\'s Advocate and Blind Spot detection.',
+        placeholder: 'Select risk factor...',
+        options: ['Financial Loss', 'Wasted Time & Momentum', 'Burnout & Stress', 'Opportunity Cost'],
       },
     ],
   };
@@ -429,7 +438,7 @@ function generateLocalFullAnalysis(
     keyReasons: [
       `Delivers highest weighted score across non-negotiable criteria`,
       `Superior long-term upside-to-risk ratio`,
-      `Strong alignment with your 10-month horizon goals`,
+      `Strong alignment with your core evaluated criteria`,
     ],
     primaryRisks: [
       `Transition friction in the first 30 days`,

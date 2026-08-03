@@ -1,4 +1,5 @@
 import { AIProvider, IntakeQuestionsResult, FullAnalysisResult, SuggestionsResult, MatrixAnalysisResult } from "../types";
+import { ClarifyingQuestion } from "../../../src/types/decision";
 import { parseAndValidateJson, buildIntakePrompt, buildFullAnalysisPrompt, buildSuggestionsPrompt, buildMatrixAnalysisPrompt } from "../helpers";
 import { IntakeQuestionsSchema, FullAnalysisSchema, SuggestionsSchema, MatrixAnalysisSchema } from "../schemas";
 
@@ -93,7 +94,7 @@ export class OpenAICompatibleProvider implements AIProvider {
     return {
       category: parsed.category,
       options: parsed.options,
-      questions: parsed.questions,
+      questions: parsed.questions as ClarifyingQuestion[],
       providerUsed: this.name,
     };
   }
@@ -107,6 +108,7 @@ export class OpenAICompatibleProvider implements AIProvider {
     const parsed = parseAndValidateJson(content, FullAnalysisSchema, this.name);
     return {
       ...parsed,
+      category: (parsed.category || 'general') as any,
       providerUsed: this.name,
     };
   }

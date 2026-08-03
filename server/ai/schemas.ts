@@ -1,22 +1,26 @@
 import { z } from 'zod';
 
 export const IntakeQuestionsSchema = z.object({
-  category: z.enum(['career', 'housing', 'finance', 'travel', 'tech', 'personal', 'business', 'general']).optional(),
+  category: z.string().optional(),
   options: z.array(z.string()).optional(),
   questions: z.array(
     z.object({
       id: z.string(),
       question: z.string(),
+      type: z.string().optional(),
       contextNote: z.string().optional(),
       placeholder: z.string().optional(),
-      options: z.array(z.string()).optional()
+      options: z.array(z.string()).optional(),
+      min: z.number().optional(),
+      max: z.number().optional(),
+      step: z.number().optional()
     })
   ).min(1).max(5)
 });
 
 export const FullAnalysisSchema = z.object({
   title: z.string(),
-  category: z.enum(['career', 'housing', 'finance', 'travel', 'tech', 'personal', 'business', 'general']),
+  category: z.string().optional(),
   description: z.string(),
   options: z.array(
     z.object({
