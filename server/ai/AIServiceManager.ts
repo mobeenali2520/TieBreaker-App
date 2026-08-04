@@ -13,8 +13,8 @@ export class AIServiceManager {
 
   private registerProviders() {
     this.providers = [
-      // Priority 1: Gemini 3.6 Flash
-      new GeminiProvider("gemini-3.6-flash", 10, false),
+      // Priority 1: Google Gemini (Dynamic Routing)
+      new GeminiProvider(10, false),
 
       // Priority 2: Groq Llama 3.3 70B
       new OpenAICompatibleProvider(
@@ -84,8 +84,14 @@ export class AIServiceManager {
       try {
         console.log(`[AI Failover System] Attempting "${actionName}" via provider: ${provider.name}`);
         
-        // 8-second strict timeout per provider call
-        const timeoutMs = provider.name.includes("Heuristic") ? 3000 : 8000;
+        // Dynamic timeout: 3s for Heuristic, 30s for FullAnalysis/Matrix (thinking mode), 15s for others
+        let timeoutMs = 15000;
+        if (provider.name.includes("Heuristic")) {
+          timeoutMs = 3000;
+        } else if (actionName === "generateFullAnalysis" || actionName === "generateMatrixAnalysis") {
+          timeoutMs = 35000; // 35 seconds to allow thinking mode to complete
+        }
+
         const result = await Promise.race([
           operation(provider),
           new Promise<never>((_, reject) =>
