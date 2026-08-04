@@ -13,8 +13,8 @@ export class AIServiceManager {
 
   private registerProviders() {
     this.providers = [
-      // Priority 1: Gemini 2.5 Flash (Ultra-fast, official Gemini model)
-      new GeminiProvider("gemini-2.5-flash", 10, false),
+      // Priority 1: Gemini 3.6 Flash
+      new GeminiProvider("gemini-3.6-flash", 10, false),
 
       // Priority 2: Groq Llama 3.3 70B
       new OpenAICompatibleProvider(
